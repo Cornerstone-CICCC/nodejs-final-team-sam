@@ -1,0 +1,28 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Zen+Kaku+Gothic+Antique:wght@300;400;500;700;900&display=swap");
+@import "tailwindcss";
+/* @theme{
+  --color-blue-highlight: #5465FF;
+  --color-blue-wi:#788BFF;
+  --color-third-green:#209F97;
+  --color-grey-25:#FCFAFA;
+  --color-grey-400:#4F4F4F;
+  --color-grey-900:#0F172A;
+  --color-grey-500:#667085;
+  --color-grey-100:#A7A7A7;
+  --color-grey-200:#8A8A8A;
+  --font-karla: "Karla", sans-serif;
+  --font-kumbhSans:"Kumbh Sans", sans-serif;
+  --font-nunitoSans: "Nunito Sans", sans-serif;
+} */
+
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+#home{
+  font-family: "Zen Kaku Gothic Antique", sans-serif;
+}
