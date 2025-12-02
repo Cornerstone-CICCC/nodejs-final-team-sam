@@ -1,19 +1,80 @@
-import React, { use, useState } from 'react'
+import  {useState } from 'react'
+import imgW from '../assets/welcomImg.png'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye } from '@fortawesome/free-solid-svg-icons'
+import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash'
+import { useNavigate } from 'react-router-dom'
 
 const Homepage = () => {
     const [isSignup, setIsSignup] = useState(true)
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
+    const [inputType, setInputType] = useState("password")
+    const [error, setError] = useState("")
+
+    const navigate = useNavigate()
+
+    const singupHandler=()=>{
+        if(!username|| !password){
+            return 
+        }
+
+        //API call - username uniqueness test
+
+        //API call -sign in
+
+        //API call - login
+
+        setUsername("")
+        setPassword("")
+        //Directing to chat summary page
+        navigate('/chats')
+    }
+
+    const loginHandler=()=>{
+        if(!username|| !password){
+            return 
+        }
+
+        //API call - login
+
+        setUsername("")
+        setPassword("")
+        //Directing to chat summary page
+        navigate('/chats')
+    }
+
+
+
   return (
     <div 
     className='bg-[rgba(191,215,255,0.5)] md:bg-white h-[100vh] flex justify-center md:justify-start pt-20 md:pt-0 max-w-[1800px] mx-auto'
     id="home">
-        <div className='md:w-[55%] bg-[#5465FF]'>
+        <div className='hidden md:flex items-center justify-center md:w-[60%] bg-[#5465FF]'>
+            <div className='p-9'>
+                <div className='text-white logo-font text-3xl text-center pb-12'>
+                    Wavechat
+                </div>
+                <div className='bg-[#F0F5FF] aspect-square flex items-center justify-center rounded-[50%] w-[280px] mx-auto'>
+                    <img
+                    src={imgW}
+                    />
+                </div>
+                <div className='text-white text-xl p-6 text-center font-bold'>
+                    Chat app for everyone
+                </div>
+                <div className='text-white text-center w-[80%] mx-auto'>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun.
+                </div>
+            </div>
         </div>
 
         <div className='bg-white p-8 rounded-2xl h-fit w-[80%] md:w-full max-w-[480px] md:max-w-full md:h-screen flex items-center'>
             <div className='flex flex-col gap-6 max-w-[400px] mx-auto'>
-                <div className='pt-5 text-center font-bold text-[24px]'>
+                <div className='logo-font pt-2 text-2xl text-center md:hidden'>
+                    Wavechat
+                </div>
+                <div className='pt-4 text-center font-bold text-[24px]'>
                     Join & Connect with your friends
                 </div>
 
@@ -32,35 +93,54 @@ const Homepage = () => {
 
                 <div className='w-[80%] mx-auto'>
                     {/* usename Input */}
-                    <div className='flex flex-col'>
-                        <label className='text-[#757575] text-[13px] p-2'>
+                    <div className='flex flex-col pb-2'>
+                        <label className='text-[#757575] text-[13px] p-1'>
                             Username
                         </label>
                         <input type="text" name='username' id="username"
-                        className='w-full'
+                        className='w-full border-b border-[#BDBDBD]'
                         onChange={(e)=>setUsername(e.target.value)}
                         value={username} />
-                        {/* Error message come here */}
+
                     </div>
                     <div className='flex flex-col'>
                         <label
-                        className='text-[#757575] text-[13px] p-2'>Password</label>
-                        <div className='flex w-full'>
-                            <input type="password" name='password' id="password"
+                        className='text-[#757575] text-[13px] p-1'>Password</label>
+                        <div className='flex w-full border-b border-[#BDBDBD] justify-between'>
+                            <input type={inputType} name='password' id="password"
                             onChange={(e)=>setPassword(e.target.value)}
                             value={password} />
+                            {inputType==="password"?
+                            <FontAwesomeIcon icon={faEye} 
+                            className='pe-4 text-[#757575] cursor-pointer'
+                            onClick={()=>setInputType("text")}/>:
+                            <FontAwesomeIcon icon={faEyeSlash}
+                            className='pe-4 text-[#757575] cursor-pointer' 
+                            onClick={()=>setInputType("password")}/>
+                            }
                         </div>
-                        {/* Error message come here */}
                     </div>
+                    {error&&
+                    <div className='text-sm text-red-400 pt-3'>
+                        {error}
+                    </div>}
                 </div>
 
                 <div className='flex justify-center pt-6'>
-                    <button className='uppercase font-bold bg-[#788BFF] py-3 px-6 rounded-3xl text-white'>
-                        {isSignup?'sign up':'log in'}
-                    </button>
+                    {isSignup?
+                    <button 
+                    className='blue-btn'
+                    onClick={()=>singupHandler()}>
+                        sign up
+                    </button>:
+                    <button 
+                    className='blue-btn'
+                    onClick={()=>loginHandler()}>
+                        log in
+                    </button>}
                 </div>
 
-                <div className='text-center'>
+                <div className='text-center pb-3'>
                 {isSignup?
                 <div>
                     Own an Account? 

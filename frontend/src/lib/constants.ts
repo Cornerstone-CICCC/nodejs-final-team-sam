@@ -1,0 +1,1 @@
+export const robohash = 'https://robohash.org'
