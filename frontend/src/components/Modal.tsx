@@ -10,6 +10,11 @@ const Modal = ({isOpen, onClose}:ModalProps) => {
         if(!roomName) return
 
         //api call to create room
+
+        //close modal
+        onClose()
+
+        //stay on /chat and show update list
     }
 
   return (

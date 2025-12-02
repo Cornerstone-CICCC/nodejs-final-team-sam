@@ -6,12 +6,12 @@ import type { Room, User } from '../types/data.types'
 const Lists = (props:ListType) => {
     const data = props.data 
   return (
-    <div className='px-10 flex flex-col gap-6'>
+    <div className='px-10 flex flex-col gap-6 md:overflow-y-scroll md:max-h-[45vh] no-scrollbar'>
         {data.length>0&&data.map((u)=>
-        <div className='flex items-center gap-8' key={u.id}>
+        <div className='flex items-center gap-8 cursor-pointer' key={u.id}>
             <div className='bg-[rgba(218,218,220,0.42)] rounded-[50%] p-1 flex items-center'>
                 <img
-                src={`${robohash}/${props.type==="private"?(u as User).username:(u as Room).roomName}`}
+                src={`${robohash}/${props.type==="private"?(u as User).id:(u as Room).id}`}
                 width={50}
                 className='rounded-[50%]'
                 />

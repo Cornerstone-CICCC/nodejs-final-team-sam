@@ -3,6 +3,8 @@ import './index.css'
 import { BrowserRouter as Router, Routes, Route }from 'react-router-dom'
 import Homepage from './pages/Homepage'
 import ChatsPage from './pages/ChatsPage'
+import TextingPage from './pages/TextingPage'
+
 
 function App() {
 
@@ -12,6 +14,7 @@ function App() {
         <Routes>
           <Route path='/' element={<Homepage/>}/>
           <Route path='/chats' element={<ChatsPage/>}/>
+          <Route path='/chats/:roomid' element={<TextingPage/>}/>
         </Routes>
       </div>
     </Router>
