@@ -1,6 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
+import userRouter from './routes/user.routes'
+import roomRouter from './routes/room.routes'
 dotenv.config()
 
 //Create server
@@ -11,6 +13,8 @@ app.use(express.json())
 
 
 //Routes
+app.use("/users", userRouter)
+app.use("/rooms", roomRouter)
 app.get("/", (req: Request, res: Response) => {
   res.status(200).send("Server is running")
 }) 
