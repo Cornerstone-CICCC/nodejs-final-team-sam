@@ -1,8 +1,16 @@
 import { RoomUser, IRoomUser } from "../models/room_user.model";
 
-//Get users by roomId
+//Get all users by roomId
+const getAll = async(roomId:string) => {
+  const users = await RoomUser.find({roomId}).populate("userId", "username").lean()
+  return users
+}
 
-
+// Get all rooms by userId
+const getAllRooms = async(userId: string) => {
+  const rooms = await RoomUser.find({userId}).populate("roomId", "name").lean()
+  return rooms
+}
 
 // Get roomId by userId
 const checkExistedRoom = async(ids: string[]) => {
@@ -30,8 +38,16 @@ const add = async(roomId: string, userId: string) => {
   return await RoomUser.create({roomId, userId})
 }
 
+// Delete room_users when they leave
+const remove = async(roomId: string, userId: string) => {
+  return await RoomUser.deleteOne({roomId, userId})
+}
+
 export default{
   checkExistedRoom,
-  add
+  add,
+  getAll,
+  remove,
+  getAllRooms
 }
 

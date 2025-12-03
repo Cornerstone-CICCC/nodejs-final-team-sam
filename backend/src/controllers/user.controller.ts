@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { IUser } from "../models/user.model";
 import userService from "../services/user.service";
-import mongoose from "mongoose";
+import { IUserLoginDTO } from "../types/loginDTO";
+
+
 //Get all users
 const getAllUsers = async(req: Request, res: Response) => {
   console.log('getall trigger')
@@ -51,10 +53,19 @@ const getUserByUsername = async(req: Request<{}, {}, {}, {username: string}>, re
   }
 }
 
-// create user
+// Sign up
 const addUser = async(req: Request<{}, IUser>, res: Response) => {
   const {username, password} = req.body
+
   try{
+
+    if(!username.trim() || !password.trim()){
+      res.status(500).json({
+        message: "Missing username or password!"
+      })
+      return
+    }
+
     const newUser = await userService.add({username,password})
     if(!newUser){
       res.status(500).json({
@@ -67,6 +78,48 @@ const addUser = async(req: Request<{}, IUser>, res: Response) => {
     console.error(err)
     res.status(500).json({message: "Server error"})
   }
+}
+
+// Login
+const login = async (req: Request<{}, {}, IUserLoginDTO>, res:Response) => {
+  const {username, password} = req.body
+  try{
+    if (!username.trim() || !password.trim()) {
+      res.status(400).json({
+        message: "Id or password is empty!"
+      })
+      return
+    }
+
+    const user = await userService.login({username, password})
+    if(!user){
+      res.status(401).json({message:"Invalid credentials!"})
+      return
+    }
+    
+    if(req.session){
+      req.session.isLoggedIn = true
+    }
+
+    res.status(200).json({
+      message: "Login successful!"
+    })
+
+  }catch(err){
+    console.error(err)
+    res.status(500).json({message: "Server error"})
+  }
+
+}
+
+// Logout
+const logout = (req: Request, res: Response) => {
+  if(req.session) {
+    req.session = null
+  }
+  res.status(200).json({
+    message: "Logout successful"
+  })
 }
 
 // Update user by id
@@ -107,11 +160,14 @@ const deleteUser = async(req: Request<{id: string}>, res:Response ) => {
   }
 }
 
+
 export default{
   getAllUsers,
   getUserById,
   getUserByUsername,
   addUser,
   updateUserById,
-  deleteUser
+  deleteUser,
+  login,
+  logout
 }
