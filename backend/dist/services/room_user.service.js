@@ -29,7 +29,7 @@ const checkExistedRoom = (ids) => __awaiter(void 0, void 0, void 0, function* ()
     return existedRoomId || null;
 });
 // Add room_users
-const add = (userId, roomId) => __awaiter(void 0, void 0, void 0, function* () {
+const add = (roomId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     return yield room_user_model_1.RoomUser.create({ roomId, userId });
 });
 exports.default = {
