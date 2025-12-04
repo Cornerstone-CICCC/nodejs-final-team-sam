@@ -12,6 +12,17 @@ const getAllRooms = async(userId: string) => {
   return rooms
 }
 
+// Get rooms by type and userId
+const getRoomsByUserAndType = async(userId: string, type: string) => {
+  const rooms = await RoomUser.find({userId}).populate({
+    path: "roomId",
+    match: {type}
+  }).lean()
+
+  return rooms.filter(r=> r.roomId !== null)
+  
+}
+
 // Get roomId by userId
 const checkExistedRoom = async(ids: string[]) => {
   // find all room with ids
@@ -48,6 +59,7 @@ export default{
   add,
   getAll,
   remove,
-  getAllRooms
+  getAllRooms,
+  getRoomsByUserAndType
 }
 

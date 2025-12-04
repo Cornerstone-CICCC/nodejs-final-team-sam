@@ -14,6 +14,23 @@ const getAllUsers = async(req: Request<{id: string}>, res: Response) => {
   }
 }
 
+// get rooms by type
+const getRoomByTypes = async(req: Request<{},{},{type: string, userId: string}>, res: Response) => {
+  try{
+    const rooms = await room_userService.getRoomsByUserAndType(req.body.userId, req.body.type)
+    if(!rooms){
+      res.status(500).json({message: "Rooms not found"})
+      return
+    }
+
+    res.status(200).json(rooms)
+  }catch (err) {
+    console.error(err)
+    res.status(500).json({ message: "Server error" })
+  }
+}
+
 export default {
-  getAllUsers
+  getAllUsers,
+  getRoomByTypes
 }

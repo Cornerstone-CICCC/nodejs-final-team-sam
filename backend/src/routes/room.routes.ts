@@ -5,7 +5,7 @@ const roomRouter = Router()
 
 roomRouter.get("/", roomController.getAllRooms)
 roomRouter.get("/search", roomController.getRoomByRoomName)
-roomRouter.get("/types/:type", roomController.getRoomByTypes)
+// roomRouter.get("/types/:type", roomController.getRoomByTypes)
 roomRouter.get("/:id", roomController.getRoomById)
 roomRouter.post("/", roomController.addRoom)
 roomRouter.put("/:id", roomController.updateRoomById)
