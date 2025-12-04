@@ -113,6 +113,18 @@ const login = async (req: Request<{}, {}, IUserLoginDTO>, res:Response) => {
 
 }
 
+//Check auth
+const checkAuth = (req: Request, res: Response) => {
+  if(!req.session){
+    res.status(401).json({
+      message: "You are not allowed to access this"
+    })
+  }else{
+    res.status(200).json(req.session.isLoggedIn)
+  }
+  
+}
+
 // Logout
 const logout = (req: Request, res: Response) => {
   if(req.session) {
@@ -170,5 +182,6 @@ export default{
   updateUserById,
   deleteUser,
   login,
-  logout
+  logout,
+  checkAuth
 }

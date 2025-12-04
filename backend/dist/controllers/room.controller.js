@@ -54,21 +54,20 @@ const getRoomByRoomName = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(500).json({ message: "Server error" });
     }
 });
-// get rooms by type
-const getRoomByTypes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const rooms = yield room_service_1.default.getTypeRooms(req.params.type);
-        if (!rooms) {
-            res.status(500).json({ message: "Rooms not found" });
-            return;
-        }
-        res.status(200).json(rooms);
-    }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
-    }
-});
+// // get rooms by type
+// const getRoomByTypes = async(req: Request<{},{},{type: string, userId: string}>, res: Response) => {
+//   try{
+//     const rooms = await room_userService.getRoomsByUser(req.body.userid, req.body.type)
+//     if(!rooms){
+//       res.status(500).json({message: "Rooms not found"})
+//       return
+//     }
+//     res.status(200).json(rooms)
+//   }catch (err) {
+//     console.error(err)
+//     res.status(500).json({ message: "Server error" })
+//   }
+// }
 // Create room
 const addRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, type } = req.body;
@@ -120,7 +119,6 @@ exports.default = {
     getAllRooms,
     getRoomById,
     getRoomByRoomName,
-    getRoomByTypes,
     addRoom,
     updateRoomById,
     deleteRoomById

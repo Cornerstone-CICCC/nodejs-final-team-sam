@@ -111,6 +111,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: "Server error" });
     }
 });
+//Check auth
+const checkAuth = (req, res) => {
+    if (!req.session) {
+        res.status(401).json({
+            message: "You are not allowed to access this"
+        });
+    }
+    else {
+        res.status(200).json(req.session.isLoggedIn);
+    }
+};
 // Logout
 const logout = (req, res) => {
     if (req.session) {
@@ -165,5 +176,6 @@ exports.default = {
     updateUserById,
     deleteUser,
     login,
-    logout
+    logout,
+    checkAuth
 };

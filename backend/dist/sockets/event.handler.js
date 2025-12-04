@@ -155,5 +155,9 @@ const handleSocketEvents = (io, socket) => {
         });
         socket.emit("updatedRoomList", roomList);
     }));
+    //distconnect
+    socket.on('disconnect', () => {
+        console.log(`User disconnected: ${socket.id}`);
+    });
 };
 exports.handleSocketEvents = handleSocketEvents;

@@ -3,37 +3,38 @@ import { BASE_URL } from "../lib/constants"
 
 const endpoint= `${BASE_URL}/rooms`
 
-//get list of existing private rooms by userId
-export const getPrivateRooms = async()=>{
-    const type = "dm"
-    try{
-        const res = await fetch(`${endpoint}/types/${type}`,{
-            method:"GET"
-        })
+// //get list of existing private rooms by userId
+// export const getPrivateRooms = async()=>{
+//     const type = "dm"
+//     try{
+//         const res = await fetch(`${endpoint}/types/${type}`,{
+//             method:"GET"
+//         })
 
-        const data = await res.json()
+//         const data = await res.json()
 
-        return data
-    }catch(err){
-        console.error(err)
-    }  
-}
+//         return data
+//     }catch(err){
+//         console.error(err)
+//     }  
+// }
 
-//get list of existing group rooms by userId
-export const getGroupRooms = async()=>{
-    const type = "group"
-    try{
-        const res = await fetch(`${endpoint}/types/${type}`,{
-            method:"GET"
-        })
 
-        const data = await res.json()
+// //get list of existing group rooms by userId
+// export const getGroupRooms = async()=>{
+//     const type = "group"
+//     try{
+//         const res = await fetch(`${endpoint}/types/${type}`,{
+//             method:"GET"
+//         })
 
-        return data
-    }catch(err){
-        console.error(err)
-    }  
-}
+//         const data = await res.json()
+
+//         return data
+//     }catch(err){
+//         console.error(err)
+//     }  
+// }
 
 //create chat room 
 export const createRoom = async({roomName, type}:{roomName:string, type:string})=>{

@@ -201,4 +201,9 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
   })
 
+  //distconnect
+  socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`)
+  })
+
 }

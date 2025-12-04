@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, use, useContext, useEffect, useState } from "react";
 import { socket } from "../socket";
-import type { Message, User } from "../types/data.types";
-import type { SocketContextType } from "../types/context.types";
+import type { Message, Room, User } from "../types/data.types";
+import type { JoinDmProps, JoinRoomProps, SocketContextType } from "../types/context.types";
 import { AuthContext, useAuth } from "./AuthContext";
 
 const SocketContext = createContext<SocketContextType| null>(null)
@@ -9,14 +9,16 @@ const SocketContext = createContext<SocketContextType| null>(null)
 export const SocketProvider =({children}:{children:React.ReactNode})=>{
     const [isConnected, setIsConnected] = useState(false)
     const [currentRoom, setCurrentRoom] =useState<string|null>(null)
-    const [onlineUsers, setOnlineUsers] =useState<User[]>([])
+    const [currentUsers, setOnlineUsers] =useState<User[]>([])
     const [messages, setMessages] = useState<Message[]>([])
+    const [currentRoomList, setCurrentRoomList] = useState<Room[]>([])
 
     const { user } = useAuth()
 
     useEffect(()=>{
       if(!user){
         if(socket){
+          socket.removeAllListeners()
           socket.disconnect()
         }
         return
@@ -27,26 +29,36 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         socket.on('disconnect',()=>setIsConnected(false))
 
         //listener
-        socket.on('chatRoom',(message)=>{
+        socket.on('newMessage',(message)=>{
             setMessages((prev)=>[...prev, message])
         })
+        //All system chat will be fall here
+        socket.on('systemChat',(data)=>{
+          setMessages((prev)=>[...prev, data])
+        })
+
+        //returning current list of rooms with userId (not filtering type)
+        socket.on("updatedRoomList",(data)=>{
+          setCurrentRoomList(data)
+        })
         
-        socket.on('updateOnlineUsers', (users:User[])=>setOnlineUsers(users))
+        //get update on online users
+        socket.on('currentUsers', (users:User[])=>setOnlineUsers(users))
 
         return ()=>{
             //remove all lisner
-            socket.off('connect')
-            socket.off('disconnect')
-            socket.off('chatRoom')
-            socket.off('updateOnlineUsers')
+            socket.removeAllListeners()
             socket.disconnect()
         }
-    },[])
+    },[user])
 
-    const joinRoom =(room:string, username:string)=>{
-        setCurrentRoom(room)
-        setMessages([])
-        socket.emit('joinRoom',{room})
+    const joinRoom =({type, data}:JoinRoomProps)=>{ //
+      setMessages([])
+      if(type === "dm"){
+        socket.emit('joinRoom', {data})
+      }else{
+        socket.emit('joinRoom',{data})
+      }
     }
 
     const leaveRoom = () => {
@@ -57,11 +69,23 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         setOnlineUsers([]);
   };
 
-  const sendMessage = (message: string, username: string) => {
+  const sendMessage = ({roomId, userId, content}:{roomId:string, userId:string, content:string}) => {
     if (!currentRoom) return;
-    socket.emit("chatRoom", { room: currentRoom, username, message });
+    socket.emit("sendMessage", {roomId, userId, content });
   };
 
+  const login = (userId:string)=>{
+    socket.emit('login', {userId})
+  }
+
+  const logout = (userId:string)=>{
+    socket.emit('logout',{userId} )
+  }
+
+  //deleting a room from room user
+  const removeRoom = (roomId:string)=>{
+    socket.emit('leaveRoom', {roomId})
+  }
   
 
   return(
@@ -71,7 +95,11 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
     joinRoom,
     leaveRoom,
     sendMessage,
-    onlineUsers
+    currentUsers,
+    login,
+    logout,
+    removeRoom,
+    currentRoomList
   }}>
         {children}
     </SocketContext>
