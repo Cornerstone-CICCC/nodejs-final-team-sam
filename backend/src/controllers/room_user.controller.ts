@@ -15,13 +15,11 @@ const getAllUsers = async(req: Request<{id: string}>, res: Response) => {
 }
 
 // get rooms by type
-const getRoomByTypes = async(req: Request<{},{},{type: string, userId: string}>, res: Response) => {
+const getRoomByTypes = async(req: Request<{},{},{type: string; userId: string}>, res: Response) => {
   try{
-    const rooms = await room_userService.getRoomsByUserAndType(req.body.userId, req.body.type)
-    if(!rooms){
-      res.status(500).json({message: "Rooms not found"})
-      return
-    }
+
+    const {userId, type} = req.body
+    const rooms = await room_userService.getRoomsByUserAndType(userId, type)
 
     res.status(200).json(rooms)
   }catch (err) {
