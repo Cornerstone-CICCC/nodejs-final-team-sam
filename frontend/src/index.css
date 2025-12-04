@@ -37,4 +37,16 @@ input:focus{
   .blue-btn{
     @apply uppercase font-bold bg-[#788BFF] py-3 px-6 rounded-3xl text-white cursor-pointer;
   }
+
+  .sidebar-md-border{
+    @apply md:border-e md:border-[#D9DCE0];
+  }
+
+  .bg-lightGray{
+    @apply bg-[rgba(218,218,220,0.42)];
+  }
+
+  .bg-lightBlue{
+    @apply bg-[rgba(205,215,232,0.42)];
+  }
 }

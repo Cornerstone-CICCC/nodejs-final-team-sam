@@ -1,1 +1,3 @@
 export const robohash = 'https://robohash.org'
+
+export const BASE_URL = "http://localhost:3500"

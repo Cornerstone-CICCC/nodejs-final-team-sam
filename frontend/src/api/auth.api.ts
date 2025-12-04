@@ -1,12 +1,13 @@
 
 import type { AuthProps } from "../types/auth.types"
+import { BASE_URL } from "../lib/constants"
 
-export const BASE_URL = "http://localhost:3500/"
+
 
 //calling find username routes by sending username
 export const validateUsername = async(username:string)=>{
     try{
-        const res = await fetch(`BASE_URL`,{
+        const res = await fetch(`${BASE_URL}/???`,{
             method:"GET",
             body: JSON.stringify({
                 username
@@ -41,6 +42,7 @@ export const signup = async({username, password}:AuthProps)=>{
     }
 }
 
+//log in to session
 export const login = async({username, password}:AuthProps)=>{
 
     try{

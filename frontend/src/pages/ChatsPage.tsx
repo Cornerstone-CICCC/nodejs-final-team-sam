@@ -5,7 +5,7 @@ const ChatsPage = () => {
 
     return (
     <div className='font-inter max-w-[1800px] mx-auto md:flex md:h-screen'>
-        <div className='md:w-[35%] flex-shrink-0 max-h-screen'>
+        <div className='md:w-[35%] md:max-w-[450px] flex-shrink-0 max-h-screen sidebar-md-border'>
             <Sidebar/>
         </div>
         {/* Desktop right side*/}

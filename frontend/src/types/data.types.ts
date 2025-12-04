@@ -5,7 +5,9 @@ export interface User{
 
 export interface Room{
     id:string,
-    roomName:string
+    roomName:string,
+    type:RoomType,
+    createAt: string
 }
 
 export interface Message{
@@ -20,3 +22,5 @@ export interface Received{
     username:string,
     message:string
 }
+
+export type RoomType= "dm"| "group"
