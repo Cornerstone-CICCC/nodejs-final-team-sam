@@ -12,6 +12,7 @@ userRouter.get('/search', user_controller_1.default.getUserByUsername);
 userRouter.post("/signup", user_controller_1.default.addUser);
 userRouter.post("/login", user_controller_1.default.login);
 userRouter.get("/logout", user_controller_1.default.logout);
+userRouter.get("/checkauth", user_controller_1.default.checkAuth);
 userRouter.get("/:id", user_controller_1.default.getUserById);
 userRouter.put("/:id", user_controller_1.default.updateUserById);
 userRouter.delete("/:id", user_controller_1.default.deleteUser);

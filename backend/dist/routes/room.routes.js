@@ -8,7 +8,7 @@ const room_controller_1 = __importDefault(require("../controllers/room.controlle
 const roomRouter = (0, express_1.Router)();
 roomRouter.get("/", room_controller_1.default.getAllRooms);
 roomRouter.get("/search", room_controller_1.default.getRoomByRoomName);
-roomRouter.get("/types/:type", room_controller_1.default.getRoomByTypes);
+// roomRouter.get("/types/:type", roomController.getRoomByTypes)
 roomRouter.get("/:id", room_controller_1.default.getRoomById);
 roomRouter.post("/", room_controller_1.default.addRoom);
 roomRouter.put("/:id", room_controller_1.default.updateRoomById);

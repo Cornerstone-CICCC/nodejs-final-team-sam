@@ -20,6 +20,14 @@ const getAllRooms = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const rooms = yield room_user_model_1.RoomUser.find({ userId }).populate("roomId", "name").lean();
     return rooms;
 });
+// Get rooms by type and userId
+const getRoomsByUserAndType = (userId, type) => __awaiter(void 0, void 0, void 0, function* () {
+    const rooms = yield room_user_model_1.RoomUser.find({ userId }).populate({
+        path: "roomId",
+        match: { type }
+    }).lean();
+    return rooms.filter(r => r.roomId !== null);
+});
 // Get roomId by userId
 const checkExistedRoom = (ids) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -50,5 +58,6 @@ exports.default = {
     add,
     getAll,
     remove,
-    getAllRooms
+    getAllRooms,
+    getRoomsByUserAndType
 };
