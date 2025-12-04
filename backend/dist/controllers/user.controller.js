@@ -102,7 +102,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             req.session.isLoggedIn = true;
         }
         res.status(200).json({
-            message: "Login successful!"
+            message: "Login successful!",
+            user
         });
     }
     catch (err) {

@@ -4,6 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye } from '@fortawesome/free-solid-svg-icons'
 import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash'
 import { useNavigate } from 'react-router-dom'
+import { login, signup, validateUsername } from '../api/auth.api'
+import { useAuth } from '../contexts/AuthContext'
+import type { User } from '../types/data.types'
 
 const Homepage = () => {
     const [isSignup, setIsSignup] = useState(true)
@@ -11,19 +14,33 @@ const Homepage = () => {
     const [password, setPassword] = useState("")
     const [inputType, setInputType] = useState("password")
     const [error, setError] = useState("")
+    const {user, setUser} = useAuth()
 
     const navigate = useNavigate()
 
-    const singupHandler=()=>{
+    const singupHandler= async()=>{
         if(!username|| !password){
             return 
         }
 
         //API call - username uniqueness test
+        const isUsernameExist = await validateUsername(username)
+        if(isUsernameExist){
+            setError("A user with that username already exist")
+            return
+        }
 
         //API call -sign in
+        const res = await signup({username, password})
+
+        if(!res){
+            setError("Something went to wrong, please try again")
+            return
+        }
 
         //API call - login
+        const logInUser = await login({username, password})
+        console.log(logInUser)
 
         setUsername("")
         setPassword("")
@@ -31,15 +48,31 @@ const Homepage = () => {
         navigate('/chats')
     }
 
-    const loginHandler=()=>{
+    const loginHandler=async()=>{
         if(!username|| !password){
             return 
         }
 
         //API call - login
+        const userObj = await login({username, password})
+
+        if(!userObj){
+            setError("Invalid username or password")
+            return
+        }
 
         setUsername("")
         setPassword("")
+
+        const user:User = {
+            username:userObj.username,
+            _id:userObj._id
+        }
+
+        console.log(user)
+
+        //store user in AuthContext
+        setUser(user)
         //Directing to chat summary page
         navigate('/chats')
     }
@@ -70,15 +103,15 @@ const Homepage = () => {
         </div>
 
         <div className='bg-white p-8 rounded-2xl h-fit w-[80%] md:w-full max-w-[480px] md:max-w-full md:h-screen flex items-center'>
-            <div className='flex flex-col gap-6 max-w-[400px] mx-auto'>
-                <div className='logo-font pt-2 text-2xl text-center md:hidden'>
+            <div className='flex flex-col gap-6 max-w-[400px] w-full mx-auto'>
+                <div className='logo-font pt-2 text-xl sm:text-2xl text-center md:hidden'>
                     Wavechat
                 </div>
-                <div className='pt-4 text-center font-bold text-[24px]'>
+                <div className='pt-4 text-center font-bold text-[18px] sm:text-[24px]'>
                     Join & Connect with your friends
                 </div>
 
-                <div className='py-1 px-1 rounded-3xl font-bold border-2 text-[16px] border-[#5465FF] flex justify-between w-[280px] mx-auto'>
+                <div className='py-1 px-1 rounded-3xl font-bold border-2 text-[14px] sm:text-[16px] border-[#5465FF] flex justify-between w-[210px] sm:w-[280px] mx-auto'>
                     <button
                     className={`text-[#5465FF] py-2 px-7 rounded-3xl cursor-pointer ${isSignup&&'bg-[#5465FF] text-white'}`}
                     onClick={()=>setIsSignup(true)}>
@@ -140,7 +173,7 @@ const Homepage = () => {
                     </button>}
                 </div>
 
-                <div className='text-center pb-3'>
+                <div className='text-center pb-3 text-[14px] sm:text-[18px]'>
                 {isSignup?
                 <div>
                     Own an Account? 

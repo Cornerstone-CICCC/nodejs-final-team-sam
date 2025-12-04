@@ -1,24 +1,28 @@
 import React, { useState } from 'react'
 import type { ModalProps } from '../types/props.types'
+import { createRoom } from '../api/rooms.api'
 
-const Modal = ({isOpen, onClose, submitType}:ModalProps) => {
+const Modal = ({isOpen, onClose, submitType, setGroups}:ModalProps) => {
     const [roomName, setRoomName]= useState("")
     const [error, setError] = useState("")
 
     if(!isOpen) return null
 
-    const createRoomHandler=()=>{
+    const createRoomHandler=async()=>{
         if(!roomName){
           setError("Please enter room name")
           return
         }
 
         //api call to create room
+        const newGroup = await createRoom({roomName:roomName, type:"group"})
+        console.log(newGroup)
 
         //close modal
         onClose()
 
-        //stay on /chat and show update list
+        //update room
+        setGroups(prev =>[newGroup,...prev ])
     }
 
     const updateRoomNameHandler =()=>{

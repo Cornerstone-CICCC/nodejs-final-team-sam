@@ -1,13 +1,14 @@
 export interface User{
-    id: string,
+    _id: string,
     username:string
 }
 
 export interface Room{
-    id:string,
-    roomName:string,
+    _id:string,
+    name:string,
     type:RoomType,
-    createAt: string
+    createAt: string,
+    updatedAt:string,
 }
 
 export interface Message{

@@ -1,11 +1,12 @@
 import type { Room, User } from "./data.types";
 
-export type ListType={type:"dm" ; data:User[]} |{type:'group'; data:Room[]}
+export type ListType={ data:Room[]}
 
 export interface ModalProps{
     isOpen:boolean,
     onClose:()=>void,
     submitType:'create'|'update'
+    setGroups:React.Dispatch<React.SetStateAction<any[]>>
 }
 
 export interface ChatHeadProps{

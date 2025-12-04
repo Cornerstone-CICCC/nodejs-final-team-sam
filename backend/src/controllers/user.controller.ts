@@ -102,7 +102,8 @@ const login = async (req: Request<{}, {}, IUserLoginDTO>, res:Response) => {
     }
 
     res.status(200).json({
-      message: "Login successful!"
+      message: "Login successful!",
+      user
     })
 
   }catch(err){

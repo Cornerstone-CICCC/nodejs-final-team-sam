@@ -1,7 +1,8 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { socket } from "../socket";
 import type { Message, User } from "../types/data.types";
 import type { SocketContextType } from "../types/context.types";
+import { AuthContext, useAuth } from "./AuthContext";
 
 const SocketContext = createContext<SocketContextType| null>(null)
 
@@ -11,8 +12,15 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
     const [onlineUsers, setOnlineUsers] =useState<User[]>([])
     const [messages, setMessages] = useState<Message[]>([])
 
+    const { user } = useAuth()
 
     useEffect(()=>{
+      if(!user){
+        if(socket){
+          socket.disconnect()
+        }
+        return
+      }
         socket.connect()
 
         socket.on('connect', ()=> setIsConnected(true))

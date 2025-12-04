@@ -7,9 +7,8 @@ const endpoint= `${BASE_URL}/rooms`
 export const getPrivateRooms = async()=>{
     const type = "dm"
     try{
-        const res = await fetch(`endpoint/types/${type}`,{
-            method:"GET",
-            credentials:"include",
+        const res = await fetch(`${endpoint}/types/${type}`,{
+            method:"GET"
         })
 
         const data = await res.json()
@@ -24,9 +23,8 @@ export const getPrivateRooms = async()=>{
 export const getGroupRooms = async()=>{
     const type = "group"
     try{
-        const res = await fetch(`endpoint/types/${type}`,{
-            method:"GET",
-            credentials:"include",
+        const res = await fetch(`${endpoint}/types/${type}`,{
+            method:"GET"
         })
 
         const data = await res.json()
@@ -42,7 +40,6 @@ export const createRoom = async({roomName, type}:{roomName:string, type:string})
     try{
         const res = await fetch(endpoint,{
             method:"POST",
-            credentials:"include",
             headers:{
                 "Content-type":"application/json"
             },
@@ -53,7 +50,7 @@ export const createRoom = async({roomName, type}:{roomName:string, type:string})
         })
 
         const data = await res.json()
-        console.log(data)
+        return data
     }catch(err){
         console.error(err)
     }  
@@ -64,7 +61,6 @@ export const updateRoomName = async(newName:string)=>{
     try{
         const res = await fetch(endpoint,{
             method:"PUT",
-            credentials:"include",
             headers:{
                 "Content-type":"application/json"
             },
@@ -85,7 +81,6 @@ export const findRoom = async(keyword:string)=>{
     try{
         const res = await fetch(`${endpoint}/search?name=${keyword}`,{
             method:"GET",
-            credentials:"include"
         })
 
         const data = await res.json()
@@ -100,11 +95,26 @@ export const findRoom = async(keyword:string)=>{
 export const getRoomById = async(roomID:string)=>{
     try{
         const res = await fetch(`${endpoint}/${roomID}`,{
-            method:"GET",
-            credentials:"include",
+            method:"GET"
         })
 
         const data = res.json()
+
+        return data
+    }catch(err){
+        console.error(err)
+    }
+}
+
+//get all rooms(including non related)
+export const getAllRooms = async()=>{
+    try{
+        const res = await fetch(`${endpoint}/`,{
+            method:"GET"
+        })
+
+        const data = res.json()
+        console.log(data)
 
         return data
     }catch(err){

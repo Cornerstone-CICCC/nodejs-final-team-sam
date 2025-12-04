@@ -6,77 +6,63 @@ import Lists from '../components/Lists'
 import type { Room } from '../types/data.types'
 import Modal from '../components/Modal'
 import { faCircleUser } from '@fortawesome/free-regular-svg-icons'
-import { getGroupRooms, getPrivateRooms } from '../api/rooms.api'
+import { getAllRooms, getGroupRooms, getPrivateRooms, getRoomById } from '../api/rooms.api'
+import { logout } from '../api/auth.api'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 export const Sidebar = () => {
+    const {user} = useAuth()
+
     const [activeUsers, setActiveUsers] = useState<{ id: string; username: string }[]>([])
-    const [friends, setFriends] = useState<{ id: string; username: string }[]>([])
+    const [friends, setFriends] = useState<Room[]>([])
     const [groups, setGroups] = useState<Room[]>([])
+
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isUserMenuOpen, setIsUserMenuOpne] = useState(false)
     const [isSearchResultOpen, setIsSearchResultOpen] = useState(false)
     const [keyword, setKeyword] = useState("")
+    const navigate = useNavigate()
     const [isPrivate, setIsPrivate] = useState(()=>{
         const storedValue = localStorage.getItem('isPrivate')
         return storedValue ? JSON.parse(storedValue): true
     })
 
-    const switchHandler = ()=>{
-        setIsPrivate(!isPrivate)
-        //loadRooms()
-    }
-
     const keyboardEventHandler =(e:React.KeyboardEvent<HTMLInputElement>)=>{
         if(e.key!=="Enter") return
-
-        console.log(keyword)
         setKeyword('')
         setIsSearchResultOpen(true)
     }
 
-    const logoutHandler = ()=>{
-
+    const logoutHandler = async()=>{
+        await logout()
+        navigate("/")
     }
 
-    const loadRooms = async()=>{
+    const loadRoomsHandler = async()=>{
         //fetch type="dm" -> return type Room
+        let rooms:Room[]
         if(isPrivate){
-            const dmRooms = await getPrivateRooms() 
-            setFriends(dmRooms)
+            rooms = await getPrivateRooms()
+            setFriends(rooms)
         }else{
-            const groupRooms = await getGroupRooms()
-            setGroups(groupRooms)
+            rooms = await getGroupRooms()
+            setGroups(rooms)
         }
     }
 
     useEffect(()=>{
         //Load rooms
-        //loadRooms()
-
-        //Sample data
-        const friends =[
-            {id:'1',username:"Amy"}, 
-            {id:'2',username:"Pal"},
-            {id:'3',username:"Bob"}, 
-            {id:'4',username:"Sean"},
-            {id:'5',username:"Kyle"},
-            {id:'6',username:"Tyle"},
-        ]
-
-        // const groups = [
-        //     {id:'1',roomName:"Amy"}, 
-        //     {id:'2',roomName:"Pal"},
-        //     {id:'3',roomName:"Bob"}, 
-        // ]
-        setFriends(friends)
-        // setActiveUsers(friends)
-        // setGroups(groups)
+        loadRoomsHandler()
     },[])
 
     //store the private/group input in local storage
     useEffect(()=>{
         localStorage.setItem('isPrivate',JSON.stringify(isPrivate))
+        loadRoomsHandler()
     },[isPrivate])
+
+
   return (
         <div className='w-full min-w-full max-h-screen'>
             {/* Head */}
@@ -106,12 +92,12 @@ export const Sidebar = () => {
                         <div className='mx-auto'>
                             <div className='bg-lightBlue w-fit rounded-2xl'>
                                 <img
-                                src={`${robohash}/username`}
+                                src={`${robohash}/${user?.username}`}
                                 width={250}
                                 />
                             </div>
                             <div className='pt-4 text-center font-bold'>
-                                Username
+                                {user?.username}
                             </div>
                         </div>
 
@@ -146,7 +132,7 @@ export const Sidebar = () => {
             {isPrivate&&<div>
                 <div className='w-full text-black font-bold flex justify-end px-8 text-[18px]'>
                     <div className='flex gap-3 items-center cursor-pointer'
-                    onClick={()=>switchHandler()}>
+                    onClick={()=>setIsPrivate(!isPrivate)}>
                         <FontAwesomeIcon icon={faPeopleGroup}/>
                         <span>Join Group</span>
                     </div>
@@ -174,7 +160,7 @@ export const Sidebar = () => {
                 <div className='py-5 px-12'>
                     <div className='font-bold text-[26px]'>Private Chats</div>
                 </div>
-                <Lists type={"dm"} data={friends}/>
+                <Lists  data={friends}/>
 
             </div>}
 
@@ -183,7 +169,7 @@ export const Sidebar = () => {
             <div className='w-full'>
                 <div className='w-full text-black font-bold flex justify-end px-8 text-[18px]'>
                     <div className='flex gap-3 items-center cursor-pointer'
-                    onClick={()=>switchHandler()}>
+                    onClick={()=>setIsPrivate(!isPrivate)}>
                         <FontAwesomeIcon icon={faPaperPlane}/>
                         <span>Message a Friend</span>
                     </div>
@@ -199,9 +185,14 @@ export const Sidebar = () => {
                     </div>
                 </div>
 
-                <Lists type={"group"} data={groups}/>
+                <Lists data={groups}/>
             </div>}
-            {isModalOpen&&<Modal isOpen={isModalOpen} onClose={()=>setIsModalOpen(false)} submitType='create'/>}
+            {isModalOpen&&
+            <Modal 
+            isOpen={isModalOpen} 
+            onClose={()=>setIsModalOpen(false)} 
+            submitType='create'
+            setGroups={setGroups}/>}
         </div>
   )
 }
