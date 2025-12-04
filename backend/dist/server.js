@@ -19,7 +19,7 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 //Middleware
 app.use((0, cors_1.default)({
-    origin: "*",
+    origin: "http://localhost:5173",
     credentials: true
 }));
 if (!process.env.COOKIE_PRIMARY_KEY || !process.env.COOKIE_SECONDARY_KEY) {

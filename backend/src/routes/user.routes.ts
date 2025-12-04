@@ -6,10 +6,10 @@ const userRouter = Router()
 
 userRouter.get('/', userController.getAllUsers)
 userRouter.get('/search', userController.getUserByUsername)
-userRouter.get("/:id", userController.getUserById)
 userRouter.post("/signup", userController.addUser)
 userRouter.post("/login", userController.login)
 userRouter.get("/logout", userController.logout)
+userRouter.get("/:id", userController.getUserById)
 userRouter.put("/:id", userController.updateUserById)
 userRouter.delete("/:id", userController.deleteUser)
 

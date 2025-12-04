@@ -1,0 +1,75 @@
+import { useNavigate, useParams } from 'react-router-dom'
+import ChatHead from '../components/ChatHead'
+import ChatSection from '../components/ChatSection'
+import { Sidebar } from '../components/Sidebar'
+import { useEffect, useState } from 'react'
+import { getRoomMember } from '../api/roomUser.api'
+import type { User } from '../types/data.types'
+import { robohash } from '../lib/constants'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faXmark } from '@fortawesome/free-solid-svg-icons'
+
+const TextingPage = () => {
+  const [showingMember, setShowingMember] = useState(false)
+  const [members, setMembers] = useState<User[]>([])
+  //get room id in parameter
+  const {roomid} = useParams()
+  const navigate = useNavigate()
+
+  useEffect(()=>{
+    if(!roomid){
+      navigate("/chats")
+    }
+  },[roomid, navigate])
+
+  // Prevent rendering until redirect happens
+  if (!roomid) return null;
+
+  useEffect(()=>{
+    //get all member (Type User)
+    //const members  = getRoomMember(roomid)
+    //setMembers(members)
+  },[showingMember])
+
+  return (
+    <div className='font-inter max-w-[1800px] mx-auto md:flex md:h-screen'>
+      {/* Show when in desktop */}
+        <div className='hidden md:flex sm:w-[28%] md:w-[35%] md:max-w-[450px] flex-shrink-0 sidebar-md-border'>
+            <Sidebar/>
+        </div>
+
+        {/* Desktop right side & whole screnn in mobile-chat history*/}
+        <div className='flex bg-[rgba(222,234,255,0.42)] h-screen flex-1 flex-col relative'>
+          <ChatHead roomId={roomid} showMember={()=>setShowingMember(true)}/>
+
+          {/* Show all members */}
+          {showingMember&&
+          <div className='absolute w-full bg-white h-[87vh] top-18'>
+            <div className='w-full px-7 py-5 flex justify-end'>
+              <FontAwesomeIcon icon={faXmark}
+              className=' cursor-pointer md:text-xl'
+              onClick={()=>setShowingMember(false)}/>
+            </div>
+            {members.length>0&&
+            members.map((m)=>
+            <div key={m.id}>
+              <div>
+                <img
+                src={`${robohash}/${m.username}`}
+                width={50}
+                className='rounded-[50%]'
+                />
+              </div>
+              <div>
+                {m.username}
+              </div>
+            </div>)
+            }
+          </div>}
+          <ChatSection roomId={roomid}/>
+        </div>
+    </div>
+  )
+}
+
+export default TextingPage

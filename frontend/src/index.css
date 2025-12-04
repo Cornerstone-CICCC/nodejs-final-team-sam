@@ -1,0 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Aclonica&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Zen+Kaku+Gothic+Antique:wght@300;400;500;700;900&display=swap");
+@import "tailwindcss";
+
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+#home{
+  font-family: "Zen Kaku Gothic Antique", sans-serif;
+}
+
+.logo-font{
+  font-family: "Aclonica", sans-serif;
+}
+
+.font-inter{
+  font-family: "Inter", sans-serif;
+}
+input:focus{
+  outline: none;
+}
+
+.no-scrollbar::-webkit-scrollbar{
+  display: none;
+}
+
+.no-scrollbar{
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@layer components{
+  .blue-btn{
+    @apply uppercase font-bold bg-[#788BFF] py-3 px-6 rounded-3xl text-white cursor-pointer;
+  }
+
+  .sidebar-md-border{
+    @apply md:border-e md:border-[#D9DCE0];
+  }
+
+  .bg-lightGray{
+    @apply bg-[rgba(218,218,220,0.42)];
+  }
+
+  .bg-lightBlue{
+    @apply bg-[rgba(205,215,232,0.42)];
+  }
+}
