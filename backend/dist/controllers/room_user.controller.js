@@ -8,18 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const message_model_1 = require("../models/message.model");
-// Get messages by roomId
-const getMessages = (roomId) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield message_model_1.Message.find({ roomId }).sort({ createdAt: 1 }).populate("userId", "username")
-        .lean();
-});
-// Add message
-const add = (newMessage) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield message_model_1.Message.create(newMessage);
+const room_user_service_1 = __importDefault(require("../services/room_user.service"));
+//Get all users in the group
+// id means roomId
+const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const roomId = req.params.id;
+        const users = yield room_user_service_1.default.getAll(roomId);
+        res.status(200).json(users);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
 });
 exports.default = {
-    add,
-    getMessages
+    getAllUsers
 };

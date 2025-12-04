@@ -20,7 +20,7 @@ const getByUsername = async(username: string) => {
       $regex: username,
       $options: 'i'
     }
-  })
+  }).select("+password")
 }
 
 //Add new user

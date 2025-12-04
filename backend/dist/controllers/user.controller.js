@@ -59,10 +59,16 @@ const getUserByUsername = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(500).json({ message: "Server error" });
     }
 });
-// create user
+// Sign up
 const addUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
     try {
+        if (!username.trim() || !password.trim()) {
+            res.status(500).json({
+                message: "Missing username or password!"
+            });
+            return;
+        }
         const newUser = yield user_service_1.default.add({ username, password });
         if (!newUser) {
             res.status(500).json({
@@ -77,6 +83,42 @@ const addUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: "Server error" });
     }
 });
+// Login
+const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { username, password } = req.body;
+    try {
+        if (!username.trim() || !password.trim()) {
+            res.status(400).json({
+                message: "Id or password is empty!"
+            });
+            return;
+        }
+        const user = yield user_service_1.default.login({ username, password });
+        if (!user) {
+            res.status(401).json({ message: "Invalid credentials!" });
+            return;
+        }
+        if (req.session) {
+            req.session.isLoggedIn = true;
+        }
+        res.status(200).json({
+            message: "Login successful!"
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+// Logout
+const logout = (req, res) => {
+    if (req.session) {
+        req.session = null;
+    }
+    res.status(200).json({
+        message: "Logout successful"
+    });
+};
 // Update user by id
 const updateUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
@@ -120,5 +162,7 @@ exports.default = {
     getUserByUsername,
     addUser,
     updateUserById,
-    deleteUser
+    deleteUser,
+    login,
+    logout
 };

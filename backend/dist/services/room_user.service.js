@@ -10,7 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const room_user_model_1 = require("../models/room_user.model");
-//Get users by roomId
+//Get all users by roomId
+const getAll = (roomId) => __awaiter(void 0, void 0, void 0, function* () {
+    const users = yield room_user_model_1.RoomUser.find({ roomId }).populate("userId", "username").lean();
+    return users;
+});
+// Get all rooms by userId
+const getAllRooms = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const rooms = yield room_user_model_1.RoomUser.find({ userId }).populate("roomId", "name").lean();
+    return rooms;
+});
 // Get roomId by userId
 const checkExistedRoom = (ids) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -32,7 +41,14 @@ const checkExistedRoom = (ids) => __awaiter(void 0, void 0, void 0, function* ()
 const add = (roomId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     return yield room_user_model_1.RoomUser.create({ roomId, userId });
 });
+// Delete room_users when they leave
+const remove = (roomId, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield room_user_model_1.RoomUser.deleteOne({ roomId, userId });
+});
 exports.default = {
     checkExistedRoom,
-    add
+    add,
+    getAll,
+    remove,
+    getAllRooms
 };

@@ -28,6 +28,8 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
     // 3. send the currentUser list to all users
     io.emit("currentUsers", users)
+    console.log("users list")
+    console.log(users)
 
   })
 
@@ -42,8 +44,18 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
     // remove online users
     const removeIndex = connectedUsers.findIndex(u => u.userId === userId)
-    connectedUsers.splice(removeIndex, 1)
+    if(removeIndex !== -1){
+      connectedUsers.splice(removeIndex, 1)
 
+      const users = await Promise.all(
+        connectedUsers.map(u => userService.getById(u.userId))
+      )
+
+      io.emit("currentUsers", users)
+
+      console.log("updated users list")
+      console.log(users)
+    }
 
 
   })
@@ -68,6 +80,8 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
       let roomId = await room_userService.checkExistedRoom(ids)
 
+      console.log(roomId)
+
       // doesn't exist room -> create a new room
       if(!roomId){
 
@@ -77,6 +91,9 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
         const newRoom = await roomService.add({name, type })
         roomId = newRoom._id
+
+        console.log(`mewRoom: ${newRoom}`)
+
 
         // add users to room_users table
         await room_userService.add(roomId, data.currUserId)
@@ -90,8 +107,11 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
       const oldMessages = await messageService.getMessages(roomId)
       // send the old message to specific user
       socket.emit("oldMessages", oldMessages)
+      console.log(oldMessages)
 
       socket.emit("joinedRoom", {roomId})
+
+      console.log(`roomId: ${roomId}`)
 
       
     }else{
@@ -104,11 +124,14 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
       //join the room
       socket.join(roomId.toString())
+      console.log(`group roomId: ${roomId}`)
+
 
       // load the history message
       const oldMessages = await messageService.getMessages(roomId)
       // send the old message to specific user
       socket.emit("oldMessages", oldMessages)
+      console.log(oldMessages)
 
       // send a message to all clients in the room 
       socket.broadcast.to(roomId.toString()).emit
@@ -133,6 +156,7 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
       // broadcast the message to users in the roon
       io.to(roomId.toString()).emit("newMessage", message)
+      console.log(`newMessage: ${message}`)
     }catch(err){
       console.error('Error saving message:', err)
     }
