@@ -6,10 +6,12 @@ import Lists from '../components/Lists'
 import type { Room } from '../types/data.types'
 import Modal from '../components/Modal'
 import { faCircleUser } from '@fortawesome/free-regular-svg-icons'
-import { getAllRooms, getGroupRooms, getPrivateRooms, getRoomById } from '../api/rooms.api'
+import { getAllRooms, getRoomById } from '../api/rooms.api'
 import { logout } from '../api/auth.api'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { getGroupRooms, getPrivateRooms } from '../api/roomUser.api'
+
 
 export const Sidebar = () => {
     const {user} = useAuth()
@@ -40,20 +42,24 @@ export const Sidebar = () => {
     }
 
     const loadRoomsHandler = async()=>{
-        //fetch type="dm" -> return type Room
-        let rooms:Room[]
-        if(isPrivate){
-            rooms = await getPrivateRooms()
-            setFriends(rooms)
-        }else{
-            rooms = await getGroupRooms()
-            setGroups(rooms)
+        if(user?._id){
+            
+            //fetch type="dm" -> return type Room
+            let rooms:Room[]
+            if(isPrivate){
+                rooms = await getPrivateRooms(user._id)
+                setFriends(rooms)
+            }else{
+                rooms = await getGroupRooms(user._id)
+                setGroups(rooms)
+            }
         }
     }
 
     useEffect(()=>{
         //Load rooms
         loadRoomsHandler()
+
     },[])
 
     //store the private/group input in local storage

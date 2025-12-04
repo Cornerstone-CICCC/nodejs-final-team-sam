@@ -18,3 +18,46 @@ export const getRoomMember = async(roomId:string)=>{
         console.error(err)
     }
 }
+
+//get list of existing private rooms by userId
+export const getPrivateRooms = async(userId:string)=>{
+    const type = "dm"
+    try{
+        const res = await fetch(`${endpoint}/typeanduser/`,{
+            method:"POST",
+            headers:{
+               "Content-type" :"application/json",
+            },
+            body: JSON.stringify({
+                type,
+                userId
+            })
+        })
+        const data = await res.json()
+
+        return data
+    }catch(err){
+        console.error(err)
+    }  
+}
+//get list of existing private rooms by userId
+export const getGroupRooms = async(userId:string)=>{
+    const type = "group"
+    try{
+        const res = await fetch(`${endpoint}/typeanduser/`,{
+            method:"POST",
+            headers:{
+               "Content-type" :"application/json",
+            },
+            body: JSON.stringify({
+                type,
+                userId
+            })
+        })
+        const data = await res.json()
+
+        return data
+    }catch(err){
+        console.error(err)
+    }  
+}

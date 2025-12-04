@@ -41,6 +41,8 @@ const Homepage = () => {
         //API call - login
         const logInUser = await login({username, password})
         console.log(logInUser)
+        
+        //send login 
 
         setUsername("")
         setPassword("")
