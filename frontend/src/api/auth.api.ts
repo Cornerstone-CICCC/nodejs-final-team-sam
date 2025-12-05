@@ -9,7 +9,8 @@ const endpoint = `${BASE_URL}/users`
 export const validateUsername = async(username:string)=>{
     try{
         const res = await fetch(`${endpoint}/search?username=${username}`,{
-            method:"GET"
+            method:"GET",
+            credentials: "include", // send cookies
         })
 
         const data = await res.json()
@@ -35,7 +36,8 @@ export const signup = async({username, password}:AuthProps)=>{
             body: JSON.stringify({
                 username,
                 password
-            })
+            }),
+            credentials: "include", // send cookies
         })
         const data = await res.json()
 

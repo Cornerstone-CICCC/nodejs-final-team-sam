@@ -100,6 +100,10 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         if (req.session) {
             req.session.isLoggedIn = true;
+            req.session.user = {
+                _id: user._id,
+                username: user.username
+            };
         }
         res.status(200).json({
             message: "Login successful!",
@@ -113,13 +117,13 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 //Check auth
 const checkAuth = (req, res) => {
-    if (!req.session) {
+    if (!req.session || !req.session.user) {
         res.status(401).json({
             message: "You are not allowed to access this"
         });
     }
     else {
-        res.status(200).json(req.session.isLoggedIn);
+        res.status(200).json(req.session.user);
     }
 };
 // Logout

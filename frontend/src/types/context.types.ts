@@ -17,7 +17,7 @@ export interface SocketContextType {
   removeRoom:(roomId:string, userId:string)=>void
   currentRoomList:Room[],
   oldMessages:OldMessage[],
-  currentRoom:Room|null,
+  currentRoomId:string,
 }
 
 export interface JoinRoomProps{

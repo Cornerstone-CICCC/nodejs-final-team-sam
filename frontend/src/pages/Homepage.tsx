@@ -61,13 +61,13 @@ const Homepage = () => {
         //API call - login
         const userObj = await login({username, password})
 
-        //send login to socket.io
-        socketLogin(userObj._id)
-
         if(!userObj){
             setError("Invalid username or password")
             return
         }
+
+        //send login to socket.io
+        await socketLogin(userObj._id)
 
         setUsername("")
         setPassword("")

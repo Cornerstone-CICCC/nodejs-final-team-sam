@@ -14,11 +14,12 @@ import { useSocket } from '../contexts/SocketContext'
 import { findRoom, getAllRooms, getRoomById } from '../api/rooms.api'
 import type { RoomUserResult } from '../types/props.types'
 import type { JoinDmProps, JoinGroupProps } from '../types/context.types'
+import { getUserByUsername, isSessionExist } from '../api/users.api'
 
 
 export const Sidebar = () => {
     const {user, setUser} = useAuth()
-    const {socketLogout, currentUsers, joinRoom, currentRoom} =useSocket()
+    const {socketLogout, currentUsers, joinRoom, currentRoomId} =useSocket()
 
     const [activeUsers, setActiveUsers] = useState<User[]>([])
     const [friends, setFriends] = useState<RoomUserResult[]>([])
@@ -34,19 +35,27 @@ export const Sidebar = () => {
         return storedValue ? JSON.parse(storedValue): true
     })
 
-    const clickUserHandler=(clickedUser:User)=>{
-        if(!user) return
-        console.log(clickedUser)
-        // const data: JoinDmProps = {
-        //     currUserId: user._id,
-        //     otherUserId:clickedUser._id,
-        //     type :"dm",
-        //     roomname: clickedUser.username
-        // }
-        // joinRoom({data})
-        // console.log(currentRoom)
-        //navigate(`/chats/${}`)
+    const clickUserHandler=async(clickedUser:User)=>{
+        if(!user||!clickedUser){
+            console.log("user or other user not found")
+            return
+        }
+     
+        const data: JoinDmProps = {
+            currUserId: user._id,
+            otherUserId:clickedUser._id,
+            type :"dm",
+            roomname: clickedUser.username
+        }
+        await joinRoom({data})
     }
+
+    useEffect(()=>{
+        if(currentRoomId){
+            console.log("I got roomId, directing room")
+            navigate(`/chats/${currentRoomId}`)
+        }
+    },[currentRoomId])
 
     const joinRoomHandler =async(room:Room)=>{
         if(!user) return
@@ -65,9 +74,21 @@ export const Sidebar = () => {
                await createRoomUser(room._id, user._id)
             }
 
-            joinRoom({data})
-            navigate(`/chats/${room._id}`)
+            await joinRoom({data})
+            navigate(`/chats/${currentRoomId}`)
+        }else{
+            //find userId from username
+            const otherUserId = await getUserByUsername(room.name)
+
+            const data: JoinDmProps = {
+                currUserId: user._id,
+                otherUserId,
+                type :"dm",
+                roomname: room.name
+                }
+            await joinRoom({data})
         }
+
     }
 
     const keyboardEventHandler =async(e:React.KeyboardEvent<HTMLInputElement>)=>{
@@ -81,14 +102,15 @@ export const Sidebar = () => {
 
     const logoutHandler = async()=>{
         if(!user?._id) return
-        socketLogout(user._id)
-        setUser(null)
-
         await logout()
+        socketLogout(user._id)
+        
+        setUser(null)
         navigate("/")
     }
 
     const loadRoomsHandler = async()=>{
+        console.log(user)
         if(user?._id){
             //fetch type="dm" -> return type Room
             let rooms:RoomUserResult[]
@@ -99,20 +121,28 @@ export const Sidebar = () => {
             }else{
                 setGroups([])
                 rooms = await getGroupRooms(user._id)
+                console.log(rooms)
                 setGroups(rooms)
             }
         }
     }
 
+    const checkAuth = async()=>{
+        const res = await isSessionExist()
+        
+        if(!res){
+            navigate("/")
+        }
+    }
     useEffect(()=>{
+        //check if logged in user
+        checkAuth()
         //Load rooms
         loadRoomsHandler()
-        setActiveUsers(currentUsers)
-    },[])
 
-    useEffect(()=>{
-        setActiveUsers(currentUsers)
-    },[currentUsers])
+        console.log(currentUsers)
+  
+    },[])
 
     //store the private/group input in local storage
     useEffect(()=>{
@@ -126,9 +156,14 @@ export const Sidebar = () => {
             {/* Head */}
             <div className='flex items-center py-6 px-6 text-xl text-[#707991] justify-between relative'>
                 {!isUserMenuOpen?
-                <FontAwesomeIcon  icon={faCircleUser}
-                className='text-2xl lg:text-3xl cursor-pointer'
-                onClick={()=>setIsUserMenuOpne(true)}/>:
+                <div
+                 onClick={()=>setIsUserMenuOpne(true)}
+                 className='bg-lightGray rounded-[50%]'>
+                    <img
+                    src={`${robohash}/${user?.username}`}
+                    className='cursor-pointer w-[35px] rounded-[50%]'
+                   />
+                </div>:
                 <FontAwesomeIcon icon={faXmark}
                 className='text-2xl lg:text-3xl cursor-pointer'
                 onClick={()=>setIsUserMenuOpne(false)}/>
@@ -217,7 +252,7 @@ export const Sidebar = () => {
                     {/* Active user */}
                     <div className='font-bold pb-2'>See People Online</div>
                     <div className='flex gap-4 h-[100px] p-2 overflow-x-scroll no-scrollbar'>
-                        {activeUsers.length>0?(activeUsers.map((u,i)=>
+                        {currentUsers.length>0?(currentUsers.map((u,i)=>
                         <div className='relative bg-lightGray rounded-[50%] p-1 flex items-center aspect-square cursor-pointer'
                         key={i}
                         onClick={()=>clickUserHandler(u)}>

@@ -8,7 +8,7 @@ const SocketContext = createContext<SocketContextType| null>(null)
 
 export const SocketProvider =({children}:{children:React.ReactNode})=>{
     const [isConnected, setIsConnected] = useState(false)
-    const [currentRoom, setCurrentRoom] =useState<Room|null>(null)
+    const [currentRoomId, setCurrentRoomId] =useState("")
     const [currentUsers, setOnlineUsers] =useState<User[]>([])
     const [oldMessages, setOldMessages] =useState<OldMessage[]>([])
     const [messages, setMessages] = useState<Message[]>([])
@@ -24,8 +24,6 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         }
         return
       }
-
-        socket.connect()
 
         socket.on('connect', ()=> setIsConnected(true))
         socket.on('disconnect',()=>setIsConnected(false))
@@ -52,21 +50,22 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
 
         //get old messages
         socket.on('oldMessages', (data)=>{
-          console.log(data)
           setOldMessages(data)
         })
 
         
-        socket.on('joinRoom',(data)=>{
-          console.log(`received join room ${data}`)
-          setCurrentRoom(data)
+        socket.on('joinedRoom',(data)=>{
+          console.log(`received join room ${data.roomId}`)
+          setCurrentRoomId(data.roomId)
           setOldMessages([])
         })
 
+        socket.connect()
+
         return ()=>{
-            //remove all lisner
-            socket.removeAllListeners()
-            socket.disconnect()
+            socket.off('newMessage')
+            socket.off('joinedRoom')
+            socket.off('oldMessage')
         }
     },[user])
 
@@ -76,9 +75,9 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
     }
 
     const leaveRoom = (roomId:string) => {
-        if (!currentRoom) return;
+        if (!currentRoomId) return;
         socket.emit("leaveRoom", { roomId });
-        setCurrentRoom(null);
+        setCurrentRoomId("");
         setMessages([]);
         setOnlineUsers([]);
   };
@@ -92,7 +91,9 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
   }
 
   const socketLogout = (userId:string)=>{
-    socket.emit('logout',{userId} )
+      if (!user) return;
+      socket.emit('logout', { userId: user._id });
+      socket.disconnect(); // only here
   }
 
   //deleting a room from room user
@@ -112,7 +113,7 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
     socketLogin,
     socketLogout,
     removeRoom,
-    currentRoom,
+    currentRoomId,
     currentRoomList,
     oldMessages
   }}>

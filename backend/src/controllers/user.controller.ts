@@ -99,6 +99,10 @@ const login = async (req: Request<{}, {}, IUserLoginDTO>, res:Response) => {
     
     if(req.session){
       req.session.isLoggedIn = true
+      req.session.user = {
+        _id:user._id,
+        username:user.username
+      }
     }
 
     res.status(200).json({
@@ -115,12 +119,12 @@ const login = async (req: Request<{}, {}, IUserLoginDTO>, res:Response) => {
 
 //Check auth
 const checkAuth = (req: Request, res: Response) => {
-  if(!req.session){
+  if(!req.session || !req.session.user){
     res.status(401).json({
       message: "You are not allowed to access this"
     })
   }else{
-    res.status(200).json(req.session.isLoggedIn)
+    res.status(200).json(req.session.user)
   }
   
 }

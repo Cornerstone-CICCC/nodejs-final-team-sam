@@ -21,7 +21,7 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
     const {user} = useAuth()
-    const {removeRoom, leaveRoom} = useSocket()
+    const {removeRoom, leaveRoom, currentRoomId} = useSocket()
 
     //leave room handler
     const leaveRoomHandler=()=>{
@@ -50,6 +50,8 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
 
     // Fetch room details when roomid exists
     const fetchRoom = async () => {
+        console.log(roomId)
+        if(!roomId) return
         try {
             const roomDetail = await getRoomById(roomId) // your API call
             console.log(roomDetail)
@@ -71,6 +73,9 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
     useEffect(()=>{
         fetchRoom()
     },[])
+    useEffect(()=>{
+        fetchRoom()
+    },[currentRoomId])
 
 
   return (

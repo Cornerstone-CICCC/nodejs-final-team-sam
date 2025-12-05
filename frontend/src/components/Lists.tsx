@@ -2,7 +2,7 @@
 import type { ListType } from '../types/props.types'
 import { robohash } from '../lib/constants'
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { use, useEffect } from 'react'
 import { useSocket } from '../contexts/SocketContext'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserByUsername } from '../api/users.api'
@@ -23,6 +23,12 @@ const Lists = (props:ListType) => {
         if(type ==="dm"){
             //find other user by roomname(username)
            const otherUser = await getUserByUsername(roomName) as User
+
+           if(!otherUser) return
+
+           console.log(otherUser)
+           console.log(user)
+
            joinRoom({
             data:{
                 currUserId:user._id,

@@ -65,9 +65,12 @@ const checkRoomUser = async(req: Request<{}, Partial<IRoomUser>>, res: Response)
       res.status(500).json({ message: "Server error" })
     }
 }
+
+
+
 export default {
   getAllUsers,
   getRoomByTypes,
   addRoomUser,
-  checkRoomUser
+  checkRoomUser,
 }

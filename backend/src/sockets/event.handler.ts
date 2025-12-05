@@ -78,7 +78,7 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
       const ids = [data.currUserId, data.otherUserId]
 
-      let roomId = await room_userService.checkExistedRoom(ids)
+     let roomId = await room_userService.checkExistedRoom(ids)
 
       console.log(roomId)
 

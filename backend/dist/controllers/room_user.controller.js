@@ -74,5 +74,5 @@ exports.default = {
     getAllUsers,
     getRoomByTypes,
     addRoomUser,
-    checkRoomUser
+    checkRoomUser,
 };
