@@ -1,12 +1,15 @@
 import { faFaceSmile, faPaperPlane } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useEffect, useState, useRef } from 'react'
-import type { Message, Received } from '../types/data.types'
+import type { Message, OldMessage, Received } from '../types/data.types'
+import { useSocket } from '../contexts/SocketContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const ChatSection = ({roomId}:{roomId:string}) => {
+    const {oldMessages, sendMessage, messages} = useSocket()
+    const {user} = useAuth()
+    
     const [sendingMsg, setSendingMsg] = useState("") //use this to send input to backend
-    const [history, setHistory] = useState<Message[]>([])//this is for history message
-    const [message, setMessage] = useState<Received[]>([])//new messages
     const messagesWrapper = useRef<HTMLDivElement>(null)
 
     //need to have some function to distinct between my message and others
@@ -14,24 +17,32 @@ const ChatSection = ({roomId}:{roomId:string}) => {
     const handleSubmit =(e:React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>)=>{
         e.preventDefault()
 
-        if("key" in e && e.key !== "Enter") return
-
-        if(!sendingMsg) return
-
-        const newMessage: Received={
-            username: "A",
-            message: sendingMsg
+        if("key" in e){
+            if(e.key !== "Enter"){
+                return
+            }
         }
 
-        setMessage([...message, newMessage])
+        if(!sendingMsg) return
+        if(!user) return
+
+        //emit to chatroom
+        sendMessage({
+            roomId, 
+            userId:user._id,
+            content:sendingMsg
+         })
+
+        //clear the message
         setSendingMsg("")
     }
 
-    useEffect(()=>{   
+    useEffect(()=>{
+        console.log(oldMessages)
         if (messagesWrapper.current) {
             messagesWrapper.current.scrollTop = messagesWrapper.current.scrollHeight
         }
-    },[message])
+    },[messages])
 
   return (
     <div className='h-full'>
@@ -41,23 +52,45 @@ const ChatSection = ({roomId}:{roomId:string}) => {
             <div className='flex justify-end flex-col gap-3 p-4'>
                 {/* Feched messge will go here */}
                 {
-                history.length>0&&history.map((h,i)=>
-                    <div className={`w-full flex justify-end`}
+                oldMessages.length>0&&(oldMessages as OldMessage[]).map((m,i)=>
+                    <div className={`w-full flex ${m.userId._id === user?._id ? "justify-end" : "justify-start"}`}
                     key={i}>
-                        <div className='bg-[#9BB1FF] py-1 px-4 rounded-xl w-fit'>
-                            {h.content}
+                        <div className={`${m.userId._id === user?._id ? "bg-[#9BB1FF]" : "bg-[#E5E5EA]"} py-1 px-4 rounded-xl w-fit`}>
+                            {m.content}
                         </div>
                     </div>
                 )}
 
-                {message.length>0&&message.map((m, i)=>
-                <div className={`w-full flex justify-end`}
+                {/* {messages.length>0&&(messages as Message[]).map((m, i)=>
+                <div className={`w-full flex ${m.userId === user?._id ? "justify-end" : "justify-start"}`}
                 key={i}>
-                    <div className='bg-[#9BB1FF] py-1 px-4 rounded-xl w-fit'>
-                        {m.message}
+                    <div className={`${m.userId === user?._id ? "bg-[#9BB1FF]" : "bg-[#E5E5EA]"} py-1 px-4 rounded-xl w-fit`}>
+                        {m.content}
                     </div>
                 </div>
+                )} */}
+                {messages.length > 0 &&
+            messages.map((m, i) => {
+                // SYSTEM MESSAGE (has "message" but no "content")
+                if ("message" in m && !("content" in m)) {
+                return (
+                    <div key={i} className="w-full flex justify-center">
+                        <div className="text-gray-500 italic text-sm py-1">
+                            {m.message}
+                        </div>
+                    </div>
                 )}
+                return (
+                <div
+                    key={i}
+                    className={`w-full flex ${m.userId === user?._id  ? "justify-end" : "justify-start"}`}>
+                    <div
+                    className={`${m.userId === user?._id ? "bg-[#9BB1FF]" : "bg-[#E5E5EA]"} py-1 px-4 rounded-xl w-fit`}>
+                    {m.content}
+                    </div>
+                </div>)
+            })
+            }
 
             </div>
             
@@ -77,10 +110,13 @@ const ChatSection = ({roomId}:{roomId:string}) => {
                 onChange={(e)=>setSendingMsg(e.target.value)}
                 />
             </div>
+            <button
+            type="submit"
+            className='border-none bg-none'>
             <FontAwesomeIcon icon={faPaperPlane} 
             className='text-[#8BABD8] cursor-pointer lg:text-xl'
-            type='submi'
             />
+            </button>
         </form>
 
     </div>

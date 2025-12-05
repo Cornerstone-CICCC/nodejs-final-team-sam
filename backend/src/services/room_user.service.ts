@@ -18,9 +18,8 @@ const getRoomsByUserAndType = async(userId: string, type: string) => {
     path: "roomId",
     match: {type}
   }).lean()
-
-  return rooms.filter(r=> r.roomId !== null)
   
+  return rooms.filter(r=> r.roomId !== null)
 }
 
 // Get roomId by userId
@@ -44,6 +43,11 @@ const checkExistedRoom = async(ids: string[]) => {
   return existedRoomId || null;
 }
 
+//check room user exist or not
+const checkRoomUser = async(roomId:string, userId:string)=>{
+  return await RoomUser.find({roomId, userId})
+}
+
 // Add room_users
 const add = async(roomId: string, userId: string) => {
   return await RoomUser.create({roomId, userId})
@@ -56,6 +60,7 @@ const remove = async(roomId: string, userId: string) => {
 
 export default{
   checkExistedRoom,
+  checkRoomUser,
   add,
   getAll,
   remove,

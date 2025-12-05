@@ -94,8 +94,10 @@ const handleSocketEvents = (io, socket) => {
             const roomId = data.roomId;
             const userId = data.currUserId;
             const username = (_a = (yield user_service_1.default.getById(userId))) === null || _a === void 0 ? void 0 : _a.username;
-            // add user to room_users table
-            yield room_user_service_1.default.add(roomId, userId);
+            // add user to room_users table 
+            // ->remove this cuz room_users table need to be add when the group is created
+            //since we are not joining group chat right after creating group
+            //await room_userService.add(roomId, userId)
             //join the room
             socket.join(roomId.toString());
             console.log(`group roomId: ${roomId}`);
@@ -116,6 +118,7 @@ const handleSocketEvents = (io, socket) => {
     // 2. userId
     // 3. content
     socket.on('sendMessage', (data) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log(data);
         const { roomId, userId, content } = data;
         try {
             // save message to messages table
@@ -145,7 +148,7 @@ const handleSocketEvents = (io, socket) => {
         // leave the room
         socket.leave(roomId.toString());
         // delete the user from the group
-        yield room_user_service_1.default.remove(roomId, userId);
+        const res = yield room_user_service_1.default.remove(roomId, userId);
         // get updatedRoomList
         const roomList = yield room_user_service_1.default.getAllRooms(userId);
         //notify 

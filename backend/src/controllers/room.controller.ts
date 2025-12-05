@@ -31,12 +31,17 @@ const getRoomById = async(req: Request<{id: string}>, res: Response) => {
 //Get room by room name
 const getRoomByRoomName = async(req: Request<{},{},{}, {roomname: string}>, res: Response) => {
   try{
-    const room = await roomService.getByName(req.query.roomname)
-    if(!room) {
+    // const room = await roomService.getByName(req.query.roomname)
+    // if(!room) {
+    //   res.status(404).json({message: "Room not found"})
+    //   return
+    // }
+    const rooms = await roomService.getByKeyword(req.query.roomname)
+    if(!rooms) {
       res.status(404).json({message: "Room not found"})
       return
     }
-    res.status(200).json(room)
+    res.status(200).json(rooms)
   }catch (err) {
     console.error(err)
     res.status(500).json({ message: "Server error" })

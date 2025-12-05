@@ -16,6 +16,16 @@ const getByName = async(roomname: string) => {
     name: roomname
   })
 }
+// Get rooms by name
+const getByKeyword = async(keyword: string) => {
+  if (!keyword || typeof keyword !== "string") {
+    return [];
+  }
+  return await Room.find({
+    name: {$regex: keyword,$options:'i'}
+  })
+}
+
 
 // Get list of rooms by the type - 'dm' or 'group'
 const getTypeRooms = async(type: string) => {
@@ -46,6 +56,7 @@ export default{
   getById,
   getByName,
   getTypeRooms,
+  getByKeyword,
   add,
   update,
   remove

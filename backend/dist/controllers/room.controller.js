@@ -42,12 +42,17 @@ const getRoomById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 //Get room by room name
 const getRoomByRoomName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const room = yield room_service_1.default.getByName(req.query.roomname);
-        if (!room) {
+        // const room = await roomService.getByName(req.query.roomname)
+        // if(!room) {
+        //   res.status(404).json({message: "Room not found"})
+        //   return
+        // }
+        const rooms = yield room_service_1.default.getByKeyword(req.query.roomname);
+        if (!rooms) {
             res.status(404).json({ message: "Room not found" });
             return;
         }
-        res.status(200).json(room);
+        res.status(200).json(rooms);
     }
     catch (err) {
         console.error(err);

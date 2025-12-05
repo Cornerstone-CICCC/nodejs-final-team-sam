@@ -1,4 +1,5 @@
 import { Sidebar } from '../components/Sidebar'
+import { useAuth } from '../contexts/AuthContext'
 
 
 const ChatsPage = () => {

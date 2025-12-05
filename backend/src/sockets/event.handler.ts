@@ -119,8 +119,10 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
       const userId = data.currUserId
       const username = (await userService.getById(userId))?.username
       
-      // add user to room_users table
-      await room_userService.add(roomId, userId)
+      // add user to room_users table 
+      // ->remove this cuz room_users table need to be add when the group is created
+      //since we are not joining group chat right after creating group
+      //await room_userService.add(roomId, userId)
 
       //join the room
       socket.join(roomId.toString())
@@ -148,6 +150,7 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
   // 2. userId
   // 3. content
   socket.on('sendMessage', async(data) => {
+    console.log(data)
     const {roomId, userId, content} = data;
 
     try{
@@ -178,13 +181,14 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
   socket.on("deleteRoom", async(data) => {
     const roomId = data.roomId
     const userId = data.userId
+
     const username = (await userService.getById(userId))?.username
 
     // leave the room
     socket.leave(roomId.toString())
 
     // delete the user from the group
-    await room_userService.remove(roomId, userId)
+    const res = await room_userService.remove(roomId, userId)
 
     // get updatedRoomList
     const roomList = await room_userService.getAllRooms(userId)

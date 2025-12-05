@@ -4,14 +4,17 @@ import ChatSection from '../components/ChatSection'
 import { Sidebar } from '../components/Sidebar'
 import { useEffect, useState } from 'react'
 import { getRoomMember } from '../api/roomUser.api'
-import type { User } from '../types/data.types'
+import type { Room, User } from '../types/data.types'
 import { robohash } from '../lib/constants'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
+import type { MemberResult } from '../types/props.types'
+import { getRoomById } from '../api/rooms.api'
 
 const TextingPage = () => {
   const [showingMember, setShowingMember] = useState(false)
-  const [members, setMembers] = useState<User[]>([])
+  const [members, setMembers] = useState<MemberResult[]>([])
+  const [room, setRoom] = useState<Room|null>(null)
   //get room id in parameter
   const {roomid} = useParams()
   const navigate = useNavigate()
@@ -19,16 +22,27 @@ const TextingPage = () => {
   useEffect(()=>{
     if(!roomid){
       navigate("/chats")
+      return
     }
+
   },[roomid, navigate])
 
   // Prevent rendering until redirect happens
   if (!roomid) return null;
 
+  const seeRoomMembers = async(roomId: string)=>{
+      const members = await getRoomMember(roomId)
+      console.log(members)
+      setMembers(members)
+  }
+
+
+
   useEffect(()=>{
+    if(!showingMember) return
     //get all member (Type User)
-    //const members  = getRoomMember(roomid)
-    //setMembers(members)
+    seeRoomMembers(roomid)
+
   },[showingMember])
 
   return (
@@ -52,16 +66,16 @@ const TextingPage = () => {
             </div>
             {members.length>0&&
             members.map((m)=>
-            <div key={m.id}>
+            <div key={m._id}
+            className='px-8 py-4 sm:py-6 flex items-center gap-8'>
               <div>
                 <img
-                src={`${robohash}/${m.username}`}
-                width={50}
-                className='rounded-[50%]'
+                src={`${robohash}/${m.userId.username}`}
+                className='rounded-[50%] bg-lightGray w-[50px] md:w-[60px]'
                 />
               </div>
-              <div>
-                {m.username}
+              <div className='font-bold'>
+                {m.userId.username}
               </div>
             </div>)
             }

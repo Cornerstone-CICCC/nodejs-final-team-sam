@@ -1,11 +1,15 @@
 import { faAngleLeft, faArrowRightFromBracket, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useEffect, useRef, useState, type MouseEvent } from "react"
+import { use, useEffect, useRef, useState, type MouseEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { robohash } from "../lib/constants"
 import { getRoomById } from "../api/rooms.api"
 import type { ChatHeadProps } from "../types/props.types"
 import type { Room } from "../types/data.types"
+import { getRoomMember } from "../api/roomUser.api"
+import { useSocket } from "../contexts/SocketContext"
+import { useAuth } from "../contexts/AuthContext"
+import Modal from "./Modal"
 
 
 
@@ -14,16 +18,22 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
     const [isEditOpen, setIsEditOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement|null>(null)
     const [room, setRoom]= useState<Room| null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const {user} = useAuth()
+    const {removeRoom, leaveRoom} = useSocket()
 
     //leave room handler
     const leaveRoomHandler=()=>{
+        leaveRoom(roomId)
         //send leave room via socket.io
         navigate('/chats')
     }
     //delete room handler
     const deleteRoomHandler=()=>{
+        if(!user) return
         //delete room from the list
-        
+        removeRoom(roomId, user._id)
         navigate('/chats')
     }
 
@@ -38,10 +48,17 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
         }
     }
 
-    const getRoomDetail = async(roomId: string)=>{
-        const details = await getRoomById(roomId)
-        return details
+    // Fetch room details when roomid exists
+    const fetchRoom = async () => {
+        try {
+            const roomDetail = await getRoomById(roomId) // your API call
+            console.log(roomDetail)
+            setRoom(roomDetail) // ← set the room state here
+        } catch (err) {
+            console.error("Failed to fetch room details:", err)
+        }
     }
+
 
     useEffect(()=>{
         window.addEventListener('mousedown', handleOutSideCLick)
@@ -52,11 +69,9 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
     },[menuRef])
 
     useEffect(()=>{
-        //getRoom deatail by Id 
-        //const room = getRoomById(roomId)
-
-        //setRoom(room)
+        fetchRoom()
     },[])
+
 
   return (
     <div className='bg-white p-5 border-b border-[#D9DCE0] w-full relative'>
@@ -69,9 +84,9 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
                 </div>
                 <div className="flex items-center gap-3 font-bold sm:text-xl">
                     <img 
-                    src={`${robohash}/${roomId}`}
+                    src={`${robohash}/${room?.name}`}
                     className="w-[35px] sm:w-[40px] rounded-[50%] bg-[rgba(218,218,220,0.42)]"/>
-                    <div>username</div>
+                    <div>{room&&room.name}</div>
                 </div>
             </div>
 
@@ -94,10 +109,18 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
             </div>
             {/* If it is dm, then do not show */}
             {room?.type === "group"&&
-            <div className="p-4 pe-6 cursor-pointer hover:bg-[#F5F5F5]">
+            <div className="p-4 pe-6 cursor-pointer hover:bg-[#F5F5F5]"
+            onClick={()=>setIsModalOpen(true)}>
                 Rename
             </div>}
         </div>}
+        {isModalOpen&&
+        <Modal
+            isOpen={isModalOpen} 
+            onClose={()=>setIsModalOpen(false)} 
+            submitType='update'
+            onUpdate={fetchRoom}
+            />}
     </div>
   )
 }

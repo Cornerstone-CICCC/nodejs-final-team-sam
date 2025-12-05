@@ -1,4 +1,4 @@
-import type { Room, RoomType, User } from "./data.types";
+import type { Message, OldMessage, Room, RoomType, User } from "./data.types";
 
 export interface AuthContextType{
     user:User|null,
@@ -8,31 +8,32 @@ export interface AuthContextType{
 export interface SocketContextType {
   isConnected: boolean;
   messages: any[];
-  joinRoom: ({type, data}:JoinRoomProps) => void;
-  leaveRoom: () => void;
+  joinRoom: ({data}:JoinRoomProps) => void;
+  leaveRoom: (roomId:string) => void;
   sendMessage: ({roomId, userId, content}:{roomId:string, userId:string, content:string}) => void;
   currentUsers:User[],
-  login:(userId:string)=>void,
-  logout:(userId:string)=>void,
-  removeRoom:(roomId:string)=>void
-  currentRoomList:Room[]
+  socketLogin:(userId:string)=>void,
+  socketLogout:(userId:string)=>void,
+  removeRoom:(roomId:string, userId:string)=>void
+  currentRoomList:Room[],
+  oldMessages:OldMessage[],
+  currentRoom:Room|null,
 }
 
 export interface JoinRoomProps{
-  type:RoomType,
+  // type:RoomType,
   data: JoinDmProps|JoinGroupProps
 }
-
 
 export interface JoinDmProps{
   currUserId: string,
   otherUserId:string,
-  typ: RoomType,
+  type: RoomType,
   roomname: string
 }
 
 export interface JoinGroupProps{
   currUserId:string,
   roomId:string,
-  typr:RoomType
+  type:RoomType
 }

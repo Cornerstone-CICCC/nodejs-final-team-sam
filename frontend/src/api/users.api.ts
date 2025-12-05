@@ -15,3 +15,16 @@ export const getUserAccounnt = async(userId:string)=>{
     }
 }
 
+//get user by username(unique)
+export const getUserByUsername =async(username:string)=>{
+    try{
+        const res = await fetch(`${endpoint}/search?name=${username}`,{
+            credentials:'include'
+        })
+        const data = await res.json() //will return userInfo
+        return data
+    }catch(err){
+        console.error(err)
+    }
+}
+

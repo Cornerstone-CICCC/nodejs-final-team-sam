@@ -45,6 +45,10 @@ const checkExistedRoom = (ids) => __awaiter(void 0, void 0, void 0, function* ()
     const existedRoomId = (_a = [...countMap.entries()].find(([_, count]) => count === ids.length)) === null || _a === void 0 ? void 0 : _a[0];
     return existedRoomId || null;
 });
+//check room user exist or not
+const checkRoomUser = (roomId, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield room_user_model_1.RoomUser.find({ roomId, userId });
+});
 // Add room_users
 const add = (roomId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     return yield room_user_model_1.RoomUser.create({ roomId, userId });
@@ -55,6 +59,7 @@ const remove = (roomId, userId) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.default = {
     checkExistedRoom,
+    checkRoomUser,
     add,
     getAll,
     remove,

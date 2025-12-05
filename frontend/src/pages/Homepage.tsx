@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { login, signup, validateUsername } from '../api/auth.api'
 import { useAuth } from '../contexts/AuthContext'
 import type { User } from '../types/data.types'
+import { useSocket } from '../contexts/SocketContext'
 
 const Homepage = () => {
     const [isSignup, setIsSignup] = useState(true)
@@ -15,6 +16,7 @@ const Homepage = () => {
     const [inputType, setInputType] = useState("password")
     const [error, setError] = useState("")
     const {user, setUser} = useAuth()
+    const {socketLogin} = useSocket()
 
     const navigate = useNavigate()
 
@@ -42,7 +44,8 @@ const Homepage = () => {
         const logInUser = await login({username, password})
         console.log(logInUser)
         
-        //send login 
+        //send login to socket.io
+        socketLogin(logInUser._id)
 
         setUsername("")
         setPassword("")
@@ -58,6 +61,9 @@ const Homepage = () => {
         //API call - login
         const userObj = await login({username, password})
 
+        //send login to socket.io
+        socketLogin(userObj._id)
+
         if(!userObj){
             setError("Invalid username or password")
             return
@@ -70,8 +76,6 @@ const Homepage = () => {
             username:userObj.username,
             _id:userObj._id
         }
-
-        console.log(user)
 
         //store user in AuthContext
         setUser(user)

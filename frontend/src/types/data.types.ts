@@ -14,9 +14,16 @@ export interface Room{
 export interface Message{
     id: string,
     roomId:string,
-    senderId:string,
+    userId:string,
     content:string,
     createdAt:string
+}
+
+export interface OldMessage{
+    _id:string,
+    createdAt:string,
+    content:string,
+    userId:User
 }
 
 export interface Received{

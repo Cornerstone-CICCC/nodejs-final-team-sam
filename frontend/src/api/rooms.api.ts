@@ -3,39 +3,6 @@ import { BASE_URL } from "../lib/constants"
 
 const endpoint= `${BASE_URL}/rooms`
 
-// //get list of existing private rooms by userId
-// export const getPrivateRooms = async()=>{
-//     const type = "dm"
-//     try{
-//         const res = await fetch(`${endpoint}/types/${type}`,{
-//             method:"GET"
-//         })
-
-//         const data = await res.json()
-
-//         return data
-//     }catch(err){
-//         console.error(err)
-//     }  
-// }
-
-
-// //get list of existing group rooms by userId
-// export const getGroupRooms = async()=>{
-//     const type = "group"
-//     try{
-//         const res = await fetch(`${endpoint}/types/${type}`,{
-//             method:"GET"
-//         })
-
-//         const data = await res.json()
-
-//         return data
-//     }catch(err){
-//         console.error(err)
-//     }  
-// }
-
 //create chat room 
 export const createRoom = async({roomName, type}:{roomName:string, type:string})=>{
     try{
@@ -47,7 +14,8 @@ export const createRoom = async({roomName, type}:{roomName:string, type:string})
             body:JSON.stringify({
                 name: roomName,
                 type
-            })
+            }),
+            credentials:'include'
         })
 
         const data = await res.json()
@@ -58,16 +26,17 @@ export const createRoom = async({roomName, type}:{roomName:string, type:string})
 }
 
 //update room name by room id
-export const updateRoomName = async(newName:string)=>{
+export const updateRoomName = async(roomId:string,newName:string)=>{
     try{
-        const res = await fetch(endpoint,{
+        const res = await fetch(`${endpoint}/${roomId}`,{
             method:"PUT",
             headers:{
                 "Content-type":"application/json"
             },
             body:JSON.stringify({
                 name: newName            
-            })
+            }),
+            credentials:'include'
         })
 
         const data = await res.json()
@@ -77,11 +46,12 @@ export const updateRoomName = async(newName:string)=>{
     }  
 }
 
-//Find a room by room name
+//Find room by room name
 export const findRoom = async(keyword:string)=>{
     try{
-        const res = await fetch(`${endpoint}/search?name=${keyword}`,{
+        const res = await fetch(`${endpoint}/search?roomname=${keyword}`,{
             method:"GET",
+            credentials:'include'
         })
 
         const data = await res.json()
@@ -93,17 +63,24 @@ export const findRoom = async(keyword:string)=>{
 }
 
 //Get room by Id 
-export const getRoomById = async(roomID:string)=>{
+export const getRoomById = async(roomId:string)=>{
     try{
-        const res = await fetch(`${endpoint}/${roomID}`,{
-            method:"GET"
+        const res = await fetch(`${endpoint}/${roomId}`,{
+            method:"GET",
+            credentials:'include'
         })
 
-        const data = res.json()
+        if (!res.ok) {
+        console.error("Failed to fetch room:", res.statusText)
+        return null
+        }
+
+        const data = await res.json()
 
         return data
     }catch(err){
         console.error(err)
+        return null
     }
 }
 
@@ -111,7 +88,8 @@ export const getRoomById = async(roomID:string)=>{
 export const getAllRooms = async()=>{
     try{
         const res = await fetch(`${endpoint}/`,{
-            method:"GET"
+            method:"GET",
+            credentials:'include'
         })
 
         const data = res.json()

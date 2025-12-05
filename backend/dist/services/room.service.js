@@ -24,6 +24,15 @@ const getByName = (roomname) => __awaiter(void 0, void 0, void 0, function* () {
         name: roomname
     });
 });
+// Get rooms by name
+const getByKeyword = (keyword) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!keyword || typeof keyword !== "string") {
+        return [];
+    }
+    return yield room_model_1.Room.find({
+        name: { $regex: keyword, $options: 'i' }
+    });
+});
 // Get list of rooms by the type - 'dm' or 'group'
 const getTypeRooms = (type) => __awaiter(void 0, void 0, void 0, function* () {
     return yield room_model_1.Room.find({
@@ -49,6 +58,7 @@ exports.default = {
     getById,
     getByName,
     getTypeRooms,
+    getByKeyword,
     add,
     update,
     remove

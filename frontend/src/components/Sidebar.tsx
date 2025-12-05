@@ -3,26 +3,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useEffect, useState } from 'react'
 import { robohash } from '../lib/constants'
 import Lists from '../components/Lists'
-import type { Room } from '../types/data.types'
+import type { Room, User } from '../types/data.types'
 import Modal from '../components/Modal'
 import { faCircleUser } from '@fortawesome/free-regular-svg-icons'
-import { getAllRooms, getRoomById } from '../api/rooms.api'
 import { logout } from '../api/auth.api'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { getGroupRooms, getPrivateRooms } from '../api/roomUser.api'
+import { checkRoomUser, createRoomUser, getGroupRooms, getPrivateRooms } from '../api/roomUser.api'
+import { useSocket } from '../contexts/SocketContext'
+import { findRoom, getAllRooms, getRoomById } from '../api/rooms.api'
+import type { RoomUserResult } from '../types/props.types'
+import type { JoinDmProps, JoinGroupProps } from '../types/context.types'
 
 
 export const Sidebar = () => {
-    const {user} = useAuth()
+    const {user, setUser} = useAuth()
+    const {socketLogout, currentUsers, joinRoom, currentRoom} =useSocket()
 
-    const [activeUsers, setActiveUsers] = useState<{ id: string; username: string }[]>([])
-    const [friends, setFriends] = useState<Room[]>([])
-    const [groups, setGroups] = useState<Room[]>([])
-
+    const [activeUsers, setActiveUsers] = useState<User[]>([])
+    const [friends, setFriends] = useState<RoomUserResult[]>([])
+    const [groups, setGroups] = useState<RoomUserResult[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isUserMenuOpen, setIsUserMenuOpne] = useState(false)
     const [isSearchResultOpen, setIsSearchResultOpen] = useState(false)
+    const [results, setResults] = useState<Room[]>([])
     const [keyword, setKeyword] = useState("")
     const navigate = useNavigate()
     const [isPrivate, setIsPrivate] = useState(()=>{
@@ -30,26 +34,70 @@ export const Sidebar = () => {
         return storedValue ? JSON.parse(storedValue): true
     })
 
-    const keyboardEventHandler =(e:React.KeyboardEvent<HTMLInputElement>)=>{
+    const clickUserHandler=(clickedUser:User)=>{
+        if(!user) return
+        console.log(clickedUser)
+        // const data: JoinDmProps = {
+        //     currUserId: user._id,
+        //     otherUserId:clickedUser._id,
+        //     type :"dm",
+        //     roomname: clickedUser.username
+        // }
+        // joinRoom({data})
+        // console.log(currentRoom)
+        //navigate(`/chats/${}`)
+    }
+
+    const joinRoomHandler =async(room:Room)=>{
+        if(!user) return
+        console.log(room)
+
+        if(room.type==="group"){
+            const data:JoinGroupProps={
+                currUserId:user._id,
+                roomId: room._id,
+                type:room.type
+            }
+
+            const isRoomUserExist =await checkRoomUser(room._id, user._id)
+            //if room user nor exist -> create room user
+            if(!isRoomUserExist){
+               await createRoomUser(room._id, user._id)
+            }
+
+            joinRoom({data})
+            navigate(`/chats/${room._id}`)
+        }
+    }
+
+    const keyboardEventHandler =async(e:React.KeyboardEvent<HTMLInputElement>)=>{
         if(e.key!=="Enter") return
+
+        const result = await findRoom(keyword)
+        setResults(result)
         setKeyword('')
         setIsSearchResultOpen(true)
     }
 
     const logoutHandler = async()=>{
+        if(!user?._id) return
+        socketLogout(user._id)
+        setUser(null)
+
         await logout()
         navigate("/")
     }
 
     const loadRoomsHandler = async()=>{
         if(user?._id){
-            
             //fetch type="dm" -> return type Room
-            let rooms:Room[]
+            let rooms:RoomUserResult[]
             if(isPrivate){
+                setFriends([])
                 rooms = await getPrivateRooms(user._id)
                 setFriends(rooms)
             }else{
+                setGroups([])
                 rooms = await getGroupRooms(user._id)
                 setGroups(rooms)
             }
@@ -59,8 +107,12 @@ export const Sidebar = () => {
     useEffect(()=>{
         //Load rooms
         loadRoomsHandler()
-
+        setActiveUsers(currentUsers)
     },[])
+
+    useEffect(()=>{
+        setActiveUsers(currentUsers)
+    },[currentUsers])
 
     //store the private/group input in local storage
     useEffect(()=>{
@@ -93,14 +145,17 @@ export const Sidebar = () => {
 
                 {/* Account detail */}
                 {isUserMenuOpen&&
-                <div className='bg-white w-full h-[89vh] absolute left-0 top-20'>
+                <div className='bg-white w-full h-[89vh] absolute left-0 top-20 z-5'>
                     <div className='p-5 w-full flex flex-col h-full justify-center gap-8 items-center'>
                         <div className='mx-auto'>
-                            <div className='bg-lightBlue w-fit rounded-2xl'>
+                            <div className='bg-lightBlue w-fit rounded-2xl relative'>
                                 <img
                                 src={`${robohash}/${user?.username}`}
                                 width={250}
                                 />
+                                <div className='absolute bg-white -bottom-5 -right-5 rounded-[50%] p-2'>
+                                    <div className='bg-green-400 w-[50px] h-[50px] rounded-[50%]'></div>
+                                </div>
                             </div>
                             <div className='pt-4 text-center font-bold'>
                                 {user?.username}
@@ -126,7 +181,21 @@ export const Sidebar = () => {
                             onClick={()=>setIsSearchResultOpen(false)}/>
                         </div>
                         <div>
-
+                            {results.length>0&&
+                            results.map((r)=>
+                            <div className='p-6 flex items-center gap-4 cursor-pointer'
+                            key={r._id}
+                            onClick={()=>joinRoomHandler(r)}>
+                                <div>
+                                    <img
+                                    src={`${robohash}/${r.name}`}
+                                    className='w-[65px] rounded-[50%] bg-lightGray'/>
+                                </div>
+                                <div className='font-bold'>
+                                    {r.name}
+                                </div>
+                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -144,16 +213,20 @@ export const Sidebar = () => {
                     </div>
                 </div>
 
-                <div className='p-5'>
+                <div className='p-5 pb-0'>
                     {/* Active user */}
-                    <div className='font-bold'>See People Online</div>
+                    <div className='font-bold pb-2'>See People Online</div>
                     <div className='flex gap-4 h-[100px] p-2 overflow-x-scroll no-scrollbar'>
                         {activeUsers.length>0?(activeUsers.map((u,i)=>
-                        <div className='bg-lightGray rounded-[50%] p-1 flex items-center aspect-square cursor-pointer'
-                        key={i}>
+                        <div className='relative bg-lightGray rounded-[50%] p-1 flex items-center aspect-square cursor-pointer'
+                        key={i}
+                        onClick={()=>clickUserHandler(u)}>
                             <img src={`${robohash}/${u.username}`}
                                 width={70}
                                 className='rounded-[50%]'/>
+                            <div className='absolute bg-white bottom-0 -right-2 rounded-[50%] p-1'>
+                                <div className='bg-green-400 w-5 h-5 rounded-[50%]'></div>
+                            </div>
                         </div>)):
                         <div className='flex items-center justify-center w-full'>
                             <div className='italic text-[#D9DCE0]'>
@@ -166,7 +239,7 @@ export const Sidebar = () => {
                 <div className='py-5 px-12'>
                     <div className='font-bold text-[26px]'>Private Chats</div>
                 </div>
-                <Lists  data={friends}/>
+                <Lists  data={friends} type="dm"/>
 
             </div>}
 
@@ -191,7 +264,7 @@ export const Sidebar = () => {
                     </div>
                 </div>
 
-                <Lists data={groups}/>
+                <Lists data={groups} type="group"/>
             </div>}
             {isModalOpen&&
             <Modal 

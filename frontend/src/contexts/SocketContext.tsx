@@ -1,6 +1,6 @@
 import { createContext, use, useContext, useEffect, useState } from "react";
 import { socket } from "../socket";
-import type { Message, Room, User } from "../types/data.types";
+import type { Message, OldMessage, Room, User } from "../types/data.types";
 import type { JoinDmProps, JoinRoomProps, SocketContextType } from "../types/context.types";
 import { AuthContext, useAuth } from "./AuthContext";
 
@@ -8,8 +8,9 @@ const SocketContext = createContext<SocketContextType| null>(null)
 
 export const SocketProvider =({children}:{children:React.ReactNode})=>{
     const [isConnected, setIsConnected] = useState(false)
-    const [currentRoom, setCurrentRoom] =useState<string|null>(null)
+    const [currentRoom, setCurrentRoom] =useState<Room|null>(null)
     const [currentUsers, setOnlineUsers] =useState<User[]>([])
+    const [oldMessages, setOldMessages] =useState<OldMessage[]>([])
     const [messages, setMessages] = useState<Message[]>([])
     const [currentRoomList, setCurrentRoomList] = useState<Room[]>([])
 
@@ -23,6 +24,7 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         }
         return
       }
+
         socket.connect()
 
         socket.on('connect', ()=> setIsConnected(true))
@@ -31,10 +33,12 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         //listener
         socket.on('newMessage',(message)=>{
             setMessages((prev)=>[...prev, message])
+            console.log(message)
         })
         //All system chat will be fall here
         socket.on('systemChat',(data)=>{
           setMessages((prev)=>[...prev, data])
+          console.log(data)
         })
 
         //returning current list of rooms with userId (not filtering type)
@@ -43,7 +47,21 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         })
         
         //get update on online users
-        socket.on('currentUsers', (users:User[])=>setOnlineUsers(users))
+        socket.on('currentUsers', (users:User[])=>{
+          setOnlineUsers(users)})
+
+        //get old messages
+        socket.on('oldMessages', (data)=>{
+          console.log(data)
+          setOldMessages(data)
+        })
+
+        
+        socket.on('joinRoom',(data)=>{
+          console.log(`received join room ${data}`)
+          setCurrentRoom(data)
+          setOldMessages([])
+        })
 
         return ()=>{
             //remove all lisner
@@ -52,56 +70,59 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         }
     },[user])
 
-    const joinRoom =({type, data}:JoinRoomProps)=>{ //
+    const joinRoom =({data}:JoinRoomProps)=>{ //
       setMessages([])
-      if(type === "dm"){
-        socket.emit('joinRoom', {data})
-      }else{
-        socket.emit('joinRoom',{data})
-      }
+      socket.emit('joinRoom', data)
     }
 
-    const leaveRoom = () => {
+    const leaveRoom = (roomId:string) => {
         if (!currentRoom) return;
-        socket.emit("leaveRoom", { room: currentRoom });
+        socket.emit("leaveRoom", { roomId });
         setCurrentRoom(null);
         setMessages([]);
         setOnlineUsers([]);
   };
 
   const sendMessage = ({roomId, userId, content}:{roomId:string, userId:string, content:string}) => {
-    if (!currentRoom) return;
     socket.emit("sendMessage", {roomId, userId, content });
   };
 
-  const login = (userId:string)=>{
+  const socketLogin = (userId:string)=>{
     socket.emit('login', {userId})
   }
 
-  const logout = (userId:string)=>{
+  const socketLogout = (userId:string)=>{
     socket.emit('logout',{userId} )
   }
 
   //deleting a room from room user
-  const removeRoom = (roomId:string)=>{
-    socket.emit('leaveRoom', {roomId})
+  const removeRoom = (roomId:string, userId:string)=>{
+    socket.emit('deleteRoom', {roomId, userId})
   }
   
 
   return(
-    <SocketContext value={{
+    <SocketContext.Provider value={{
     isConnected,
     messages,
     joinRoom,
     leaveRoom,
     sendMessage,
     currentUsers,
-    login,
-    logout,
+    socketLogin,
+    socketLogout,
     removeRoom,
-    currentRoomList
+    currentRoom,
+    currentRoomList,
+    oldMessages
   }}>
         {children}
-    </SocketContext>
+    </SocketContext.Provider>
   )
+}
+
+export const useSocket =()=>{
+  const ctx = useContext(SocketContext)
+  if(!ctx) throw new Error("useScock must be used insed SocketProvide")
+  return ctx
 }

@@ -38,7 +38,41 @@ const getRoomByTypes = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).json({ message: "Server error" });
     }
 });
+// Create room_user
+const addRoomUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { roomId, userId } = req.body;
+    // Validate
+    if (!roomId || !userId) {
+        return res.status(400).json({ message: "roomId and userId are required" });
+    }
+    try {
+        const newRoomUser = yield room_user_service_1.default.add(roomId, userId);
+        if (!newRoomUser) {
+            res.status(500).json({ message: "Unable to add Room_user" });
+            return;
+        }
+        res.status(201).json(newRoomUser);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+//const check if there is existing row with roomId and userId
+const checkRoomUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { roomId, userId } = req.body;
+    try {
+        const roomUser = yield room_user_service_1.default.checkRoomUser(roomId, userId);
+        res.status(201).json(roomUser);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 exports.default = {
     getAllUsers,
-    getRoomByTypes
+    getRoomByTypes,
+    addRoomUser,
+    checkRoomUser
 };

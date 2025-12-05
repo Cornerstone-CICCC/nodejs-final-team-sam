@@ -1,10 +1,17 @@
 import React, { useState } from 'react'
 import type { ModalProps } from '../types/props.types'
-import { createRoom } from '../api/rooms.api'
+import { createRoom, updateRoomName } from '../api/rooms.api'
+import { useAuth } from '../contexts/AuthContext'
+import { createRoomUser } from '../api/roomUser.api'
+import { useParams } from 'react-router-dom'
 
-const Modal = ({isOpen, onClose, submitType, setGroups}:ModalProps) => {
+const Modal = ({isOpen, onClose, submitType, setGroups, onUpdate}:ModalProps) => {
     const [roomName, setRoomName]= useState("")
     const [error, setError] = useState("")
+
+    const {user}= useAuth()
+    const {roomid} = useParams()
+    console.log(user)
 
     if(!isOpen) return null
 
@@ -14,23 +21,39 @@ const Modal = ({isOpen, onClose, submitType, setGroups}:ModalProps) => {
           return
         }
 
+        if(!user){
+          console.error("user not found")
+          return
+        }
+
         //api call to create room
         const newGroup = await createRoom({roomName:roomName, type:"group"})
-        console.log(newGroup)
+
+        //create related room user
+        const roomId = newGroup._id
+        const newRoomUser = await createRoomUser(roomId, user._id)
+        console.log(newRoomUser)
 
         //close modal
         onClose()
-
-        //update room
-        setGroups(prev =>[newGroup,...prev ])
     }
 
-    const updateRoomNameHandler =()=>{
+    const updateRoomNameHandler = async()=>{
+      if(!roomid){
+        console.log("no room id")
+        return
+      }
         if(!roomName){
           setError("Please enter new name")
           return
         }
+        const res = await updateRoomName(roomid,roomName)
+        
+        if(onUpdate) onUpdate()
+        onClose()
     }
+
+
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.4)] bg-opacity-20 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-8 w-full max-w-md relative">
