@@ -1,4 +1,5 @@
 import { RoomUser, IRoomUser } from "../models/room_user.model";
+import { Room } from "../models/room.model";
 
 //Get all users by roomId
 const getAll = async(roomId:string) => {
@@ -23,11 +24,11 @@ const getRoomsByUserAndType = async(userId: string, type: string) => {
 }
 
 // Get roomId by userId
-const checkExistedRoom = async(ids: string[]) => {
+const checkExistedRoom = async(ids: string[], type: string) => {
   // find all room with ids
   const rooms = await RoomUser.find({
     userId: {$in: ids}
-  })
+  }).lean()
 
   // count users per roomId
   const countMap = new Map()
@@ -40,7 +41,15 @@ const checkExistedRoom = async(ids: string[]) => {
   // find the roomId that has two users
   const existedRoomId = [...countMap.entries()].find(([_, count])=> count === ids.length)?.[0]
 
-  return existedRoomId || null;
+  if(!existedRoomId) return null;
+
+  const room = await Room.findOne({
+    _id: existedRoomId,
+    type
+  }).lean()
+
+
+  return room? room._id.toString(): null;
 }
 
 //check room user exist or not
