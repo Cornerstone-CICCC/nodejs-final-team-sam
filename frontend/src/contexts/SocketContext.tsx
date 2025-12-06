@@ -16,58 +16,94 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
 
     const { user } = useAuth()
 
-    useEffect(()=>{
-      if(!user){
-        if(socket){
-          socket.removeAllListeners()
-          socket.disconnect()
-        }
-        return
+    // useEffect(()=>{
+    //   if(!user){
+    //     if(socket){
+    //       socket.removeAllListeners()
+    //       socket.disconnect()
+    //     }
+    //     return
+    //   }
+
+    //     socket.on('connect', ()=> setIsConnected(true))
+    //     socket.on('disconnect',()=>setIsConnected(false))
+
+    //     //listener
+    //     socket.on('newMessage',(message)=>{
+    //         setMessages((prev)=>[...prev, message])
+    //         console.log(message)
+    //     })
+    //     //All system chat will be fall here
+    //     socket.on('systemChat',(data)=>{
+    //       setMessages((prev)=>[...prev, data])
+    //       console.log(data)
+    //     })
+
+    //     //returning current list of rooms with userId (not filtering type)
+    //     socket.on("updatedRoomList",(data)=>{
+    //       setCurrentRoomList(data)
+    //     })
+        
+    //     //get update on online users
+    //     socket.on('currentUsers', (users:User[])=>{
+    //       setOnlineUsers(users)})
+
+    //     //get old messages
+    //     socket.on('oldMessages', (data)=>{
+    //       setOldMessages(data)
+    //     })
+
+        
+    //     socket.on('joinedRoom',(data)=>{
+    //       console.log(`received join room ${data.roomId}`)
+    //       setCurrentRoomId(data.roomId)
+    //       setOldMessages([])
+    //     })
+
+    //     socket.connect()
+
+    //     return ()=>{
+    //         socket.off('newMessage')
+    //         socket.off('joinedRoom')
+    //         socket.off('oldMessage')
+    //     }
+    // },[user])
+    useEffect(() => {
+      if (!socket) return;
+
+      socket.on('connect', () => setIsConnected(true));
+      socket.on('disconnect', () => setIsConnected(false));
+
+      socket.on('currentUsers', (users: User[]) => setOnlineUsers(users));
+      socket.on('newMessage', (message) => setMessages((prev) => [...prev, message]));
+      socket.on('systemChat', (data) => setMessages((prev) => [...prev, data]));
+      socket.on('updatedRoomList', (data) => setCurrentRoomList(data));
+      socket.on('oldMessages', (data) => setOldMessages(data));
+      socket.on('joinedRoom', (data) => {
+        setCurrentRoomId(data.roomId);
+        setOldMessages([]);
+      });
+
+      socket.connect();
+
+      return () => {
+        socket.off('connect');
+        socket.off('disconnect');
+        socket.off('currentUsers');
+        socket.off('newMessage');
+        socket.off('systemChat');
+        socket.off('updatedRoomList');
+        socket.off('oldMessages');
+        socket.off('joinedRoom');
+      };
+    }, []); // run only once
+
+    // Emit login whenever user becomes available
+    useEffect(() => {
+      if (user?._id) {
+        socket.emit('login', { userId: user._id });
       }
-
-        socket.on('connect', ()=> setIsConnected(true))
-        socket.on('disconnect',()=>setIsConnected(false))
-
-        //listener
-        socket.on('newMessage',(message)=>{
-            setMessages((prev)=>[...prev, message])
-            console.log(message)
-        })
-        //All system chat will be fall here
-        socket.on('systemChat',(data)=>{
-          setMessages((prev)=>[...prev, data])
-          console.log(data)
-        })
-
-        //returning current list of rooms with userId (not filtering type)
-        socket.on("updatedRoomList",(data)=>{
-          setCurrentRoomList(data)
-        })
-        
-        //get update on online users
-        socket.on('currentUsers', (users:User[])=>{
-          setOnlineUsers(users)})
-
-        //get old messages
-        socket.on('oldMessages', (data)=>{
-          setOldMessages(data)
-        })
-
-        
-        socket.on('joinedRoom',(data)=>{
-          console.log(`received join room ${data.roomId}`)
-          setCurrentRoomId(data.roomId)
-          setOldMessages([])
-        })
-
-        socket.connect()
-
-        return ()=>{
-            socket.off('newMessage')
-            socket.off('joinedRoom')
-            socket.off('oldMessage')
-        }
-    },[user])
+    }, [user]);
 
     const joinRoom =({data}:JoinRoomProps)=>{ //
       setMessages([])
