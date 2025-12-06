@@ -29,6 +29,20 @@ const getRoomByTypes = async(req: Request<{},{},{type: string; userId: string}>,
   }
 }
 
+// get User username by type dm
+const getDmRooms = async(req: Request<{},{},{userId: string}>, res: Response) => {
+  try{
+
+    const {userId} = req.body
+    const rooms = await room_userService.getDmRoomsWithOtherUser(userId)
+
+    res.status(200).json(rooms)
+  }catch (err) {
+    console.error(err)
+    res.status(500).json({ message: "Server error" })
+  }
+}
+
 // Create room_user
 const addRoomUser = async(req: Request<{}, IRoomUser>, res: Response) => {
   const {roomId, userId} = req.body
@@ -73,4 +87,5 @@ export default {
   getRoomByTypes,
   addRoomUser,
   checkRoomUser,
+  getDmRooms
 }

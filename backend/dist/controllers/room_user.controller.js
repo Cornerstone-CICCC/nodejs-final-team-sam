@@ -38,6 +38,18 @@ const getRoomByTypes = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).json({ message: "Server error" });
     }
 });
+// get User username by type dm
+const getDmRooms = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.body;
+        const rooms = yield room_user_service_1.default.getDmRoomsWithOtherUser(userId);
+        res.status(200).json(rooms);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 // Create room_user
 const addRoomUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { roomId, userId } = req.body;
@@ -75,4 +87,5 @@ exports.default = {
     getRoomByTypes,
     addRoomUser,
     checkRoomUser,
+    getDmRooms
 };

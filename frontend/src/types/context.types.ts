@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import type { Message, OldMessage, Room, RoomType, User } from "./data.types";
 
 export interface AuthContextType{
@@ -9,7 +10,7 @@ export interface SocketContextType {
   isConnected: boolean;
   messages: any[];
   joinRoom: ({data}:JoinRoomProps) => void;
-  leaveRoom: (roomId:string) => void;
+  leaveRoom: () => void;
   sendMessage: ({roomId, userId, content}:{roomId:string, userId:string, content:string}) => void;
   currentUsers:User[],
   socketLogin:(userId:string)=>void,
@@ -18,6 +19,7 @@ export interface SocketContextType {
   currentRoomList:Room[],
   oldMessages:OldMessage[],
   currentRoomId:string,
+  setCurrentRoomId:Dispatch<SetStateAction<string>>
 }
 
 export interface JoinRoomProps{
@@ -29,7 +31,8 @@ export interface JoinDmProps{
   currUserId: string,
   otherUserId:string,
   type: RoomType,
-  roomname: string
+  roomname: string,
+  roomId?:string
 }
 
 export interface JoinGroupProps{

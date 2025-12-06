@@ -63,22 +63,27 @@ const handleSocketEvents = (io, socket) => {
     // 2. roomId (already existed)
     // 3. type("group")
     socket.on('joinRoom', (data) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         if (data.type === "dm") {
-            const ids = [data.currUserId, data.otherUserId];
-            let roomId = yield room_user_service_1.default.checkExistedRoom(ids);
-            console.log(roomId);
-            // doesn't exist room -> create a new room
+            let roomId = (_a = data.roomId) === null || _a === void 0 ? void 0 : _a.toString();
             if (!roomId) {
-                // dm's roomname - user1_user2
-                const name = data.roomname;
-                const type = data.type;
-                const newRoom = yield room_service_1.default.add({ name, type });
-                roomId = newRoom._id;
-                console.log(`mewRoom: ${newRoom}`);
-                // add users to room_users table
-                yield room_user_service_1.default.add(roomId, data.currUserId);
-                yield room_user_service_1.default.add(roomId, data.otherUserId);
+                const ids = [data.currUserId, data.otherUserId];
+                roomId = yield room_user_service_1.default.checkExistedRoom(ids, data.type);
+                console.log(roomId);
+                // doesn't exist room -> create a new room
+                if (!roomId) {
+                    // dm's roomname - user1_user2
+                    const name = data.roomname;
+                    const type = data.type;
+                    const newRoom = yield room_service_1.default.add({ name, type });
+                    roomId = newRoom._id.toString();
+                    console.log(`mewRoom: ${newRoom}`);
+                    console.log("current", data.currUserId);
+                    console.log("other", data.otherUserId);
+                    // add users to room_users table
+                    yield room_user_service_1.default.add(roomId, data.currUserId);
+                    yield room_user_service_1.default.add(roomId, data.otherUserId);
+                }
             }
             // join the room
             socket.join(roomId.toString());
@@ -93,13 +98,14 @@ const handleSocketEvents = (io, socket) => {
         else {
             const roomId = data.roomId;
             const userId = data.currUserId;
-            const username = (_a = (yield user_service_1.default.getById(userId))) === null || _a === void 0 ? void 0 : _a.username;
+            const username = (_b = (yield user_service_1.default.getById(userId))) === null || _b === void 0 ? void 0 : _b.username;
             // add user to room_users table 
             // ->remove this cuz room_users table need to be add when the group is created
             //since we are not joining group chat right after creating group
             //await room_userService.add(roomId, userId)
             //join the room
             socket.join(roomId.toString());
+            socket.emit("joinedRoom", { roomId });
             console.log(`group roomId: ${roomId}`);
             // load the history message
             const oldMessages = yield message_service_1.default.getMessages(roomId);

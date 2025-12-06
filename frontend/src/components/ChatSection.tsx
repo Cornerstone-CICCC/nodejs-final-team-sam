@@ -38,11 +38,11 @@ const ChatSection = ({roomId}:{roomId:string}) => {
     }
 
     useEffect(()=>{
-        console.log(oldMessages)
+        console.log("OldMessage",oldMessages)
         if (messagesWrapper.current) {
             messagesWrapper.current.scrollTop = messagesWrapper.current.scrollHeight
         }
-    },[messages])
+    },[messages, oldMessages])
 
   return (
     <div className='h-full'>
@@ -52,9 +52,9 @@ const ChatSection = ({roomId}:{roomId:string}) => {
             <div className='flex justify-end flex-col gap-3 p-4'>
                 {/* Feched messge will go here */}
                 {
-                oldMessages.length>0&&(oldMessages as OldMessage[]).map((m,i)=>
+                oldMessages.length>0&&(oldMessages as OldMessage[]).map((m)=>
                     <div className={`w-full flex ${m.userId._id === user?._id ? "justify-end" : "justify-start"}`}
-                    key={i}>
+                    key={m._id}>
                         <div className={`${m.userId._id === user?._id ? "bg-[#9BB1FF]" : "bg-[#E5E5EA]"} py-1 px-4 rounded-xl w-fit`}>
                             {m.content}
                         </div>

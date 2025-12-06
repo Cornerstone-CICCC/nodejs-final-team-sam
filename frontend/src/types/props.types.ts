@@ -1,9 +1,6 @@
 import type { Room, User } from "./data.types";
 
-export interface ListType{ 
-    data:RoomUserResult[],
-    type:"dm"|"group"
-}
+export type ListType= {type:"group"; data:RoomUserResult[]}|{type:"dm", data:DmData[]}
 
 export interface RoomUserResult{
     userId:string,
@@ -18,6 +15,11 @@ export interface ModalProps{
     submitType:'create'|'update'
     setGroups?:React.Dispatch<React.SetStateAction<any[]>>
     onUpdate?:()=> void
+}
+// DM-specific result type
+export interface DmData {
+  otherUser: User;
+  room: Room;
 }
 
 export interface ChatHeadProps{

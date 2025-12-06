@@ -33,6 +33,7 @@ const Modal = ({isOpen, onClose, submitType, setGroups, onUpdate}:ModalProps) =>
         const roomId = newGroup._id
         const newRoomUser = await createRoomUser(roomId, user._id)
         console.log(newRoomUser)
+        if(onUpdate) onUpdate()
 
         //close modal
         onClose()

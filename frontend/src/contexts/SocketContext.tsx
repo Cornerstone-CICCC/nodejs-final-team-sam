@@ -3,6 +3,7 @@ import { socket } from "../socket";
 import type { Message, OldMessage, Room, User } from "../types/data.types";
 import type { JoinDmProps, JoinRoomProps, SocketContextType } from "../types/context.types";
 import { AuthContext, useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const SocketContext = createContext<SocketContextType| null>(null)
 
@@ -78,10 +79,13 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
       socket.on('newMessage', (message) => setMessages((prev) => [...prev, message]));
       socket.on('systemChat', (data) => setMessages((prev) => [...prev, data]));
       socket.on('updatedRoomList', (data) => setCurrentRoomList(data));
-      socket.on('oldMessages', (data) => setOldMessages(data));
+      socket.on('oldMessages', (data) => {
+        console.log("Old Messages",data)
+        setOldMessages(data)});
       socket.on('joinedRoom', (data) => {
+        console.log("joined:", data.roomId)
         setCurrentRoomId(data.roomId);
-        setOldMessages([]);
+        
       });
 
       socket.connect();
@@ -107,12 +111,13 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
 
     const joinRoom =({data}:JoinRoomProps)=>{ //
       setMessages([])
+      setOldMessages([])
       socket.emit('joinRoom', data)
     }
 
-    const leaveRoom = (roomId:string) => {
+    const leaveRoom = () => {
         if (!currentRoomId) return;
-        socket.emit("leaveRoom", { roomId });
+        socket.emit("leaveRoom", { roomId:currentRoomId });
         setCurrentRoomId("");
         setMessages([]);
         setOnlineUsers([]);
@@ -128,7 +133,7 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
 
   const socketLogout = (userId:string)=>{
       if (!user) return;
-      socket.emit('logout', { userId: user._id });
+      socket.emit('logout', { userId});
       socket.disconnect(); // only here
   }
 
@@ -151,7 +156,8 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
     removeRoom,
     currentRoomId,
     currentRoomList,
-    oldMessages
+    oldMessages,
+    setCurrentRoomId
   }}>
         {children}
     </SocketContext.Provider>

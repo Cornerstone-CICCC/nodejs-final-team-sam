@@ -19,16 +19,14 @@ export const getRoomMember = async(roomId:string)=>{
 
 //get list of existing private rooms by userId
 export const getPrivateRooms = async(userId:string)=>{
-    const type = "dm"
     try{
-        const res = await fetch(`${endpoint}/typeanduser`,{
+        const res = await fetch(`${endpoint}/typeandusername`,{
             method:"POST",
             credentials:'include',
             headers:{
                "Content-type" :"application/json",
             },
             body: JSON.stringify({
-                type,
                 userId
             })
         })

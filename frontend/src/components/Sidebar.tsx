@@ -12,17 +12,17 @@ import { useAuth } from '../contexts/AuthContext'
 import { checkRoomUser, createRoomUser, getGroupRooms, getPrivateRooms } from '../api/roomUser.api'
 import { useSocket } from '../contexts/SocketContext'
 import { findRoom, getAllRooms, getRoomById } from '../api/rooms.api'
-import type { RoomUserResult } from '../types/props.types'
+import type { DmData, RoomUserResult } from '../types/props.types'
 import type { JoinDmProps, JoinGroupProps } from '../types/context.types'
 import { getUserByUsername, isSessionExist } from '../api/users.api'
 
 
 export const Sidebar = () => {
     const {user, setUser} = useAuth()
-    const {socketLogout, currentUsers, joinRoom, currentRoomId} =useSocket()
+    const {socketLogout, currentUsers, joinRoom, currentRoomId,leaveRoom} =useSocket()
 
     const [activeUsers, setActiveUsers] = useState<User[]>([])
-    const [friends, setFriends] = useState<RoomUserResult[]>([])
+    const [friends, setFriends] = useState<DmData[]>([])
     const [groups, setGroups] = useState<RoomUserResult[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isUserMenuOpen, setIsUserMenuOpne] = useState(false)
@@ -36,6 +36,9 @@ export const Sidebar = () => {
     })
 
     const clickUserHandler=async(clickedUser:User)=>{
+        console.log(clickedUser)
+        console.log(user)
+
         if(!user||!clickedUser){
             console.log("user or other user not found")
             return
@@ -60,6 +63,7 @@ export const Sidebar = () => {
     const joinRoomHandler =async(room:Room)=>{
         if(!user) return
         console.log(room)
+        leaveRoom()
 
         if(room.type==="group"){
             const data:JoinGroupProps={
@@ -75,7 +79,11 @@ export const Sidebar = () => {
             }
 
             await joinRoom({data})
-            navigate(`/chats/${currentRoomId}`)
+
+            if(currentRoomId){
+                navigate(`/chats/${currentRoomId}`)            
+            }
+
         }else{
             //find userId from username
             const otherUserId = await getUserByUsername(room.name)
@@ -87,6 +95,10 @@ export const Sidebar = () => {
                 roomname: room.name
                 }
             await joinRoom({data})
+
+            if(currentRoomId){
+                navigate(`/chats/${currentRoomId}`)    
+            }
         }
 
     }
@@ -113,14 +125,14 @@ export const Sidebar = () => {
         console.log(user)
         if(user?._id){
             //fetch type="dm" -> return type Room
-            let rooms:RoomUserResult[]
+
             if(isPrivate){
                 setFriends([])
-                rooms = await getPrivateRooms(user._id)
+                 const rooms = await getPrivateRooms(user._id)
                 setFriends(rooms)
             }else{
                 setGroups([])
-                rooms = await getGroupRooms(user._id)
+                const rooms = await getGroupRooms(user._id)
                 console.log(rooms)
                 setGroups(rooms)
             }
@@ -139,16 +151,22 @@ export const Sidebar = () => {
         checkAuth()
         //Load rooms
         loadRoomsHandler()
-
         console.log(currentUsers)
   
     },[])
 
+    useEffect(()=>{
+        console.log(currentUsers)
+        setActiveUsers(currentUsers)
+    },[currentUsers])
+
     //store the private/group input in local storage
     useEffect(()=>{
+        if(!user) return
         localStorage.setItem('isPrivate',JSON.stringify(isPrivate))
         loadRoomsHandler()
-    },[isPrivate])
+    },[isPrivate,user])
+
 
 
   return (
@@ -208,14 +226,14 @@ export const Sidebar = () => {
 
                 {/* Search result */}
                 {isSearchResultOpen&&
-                <div className='bg-white w-full h-[89vh] absolute left-0 top-20'>
+                <div className='bg-white w-full h-[89vh] absolute left-0 top-20 z-10'>
                     <div className='p-5 w-full flex flex-col'>
-                        <div className='w-full'>
+                        <div className='w-full pb-4'>
                             <FontAwesomeIcon 
                             icon={faAngleLeft}
                             onClick={()=>setIsSearchResultOpen(false)}/>
                         </div>
-                        <div>
+                        <div className='h-[80%] max-h-[500px] overflow-y-scroll no-scrollbar'>
                             {results.length>0&&
                             results.map((r)=>
                             <div className='p-6 flex items-center gap-4 cursor-pointer'
@@ -252,7 +270,7 @@ export const Sidebar = () => {
                     {/* Active user */}
                     <div className='font-bold pb-2'>See People Online</div>
                     <div className='flex gap-4 h-[100px] p-2 overflow-x-scroll no-scrollbar'>
-                        {currentUsers.length>0?(currentUsers.map((u,i)=>
+                        {activeUsers.length>0?(activeUsers.map((u,i)=>
                         <div className='relative bg-lightGray rounded-[50%] p-1 flex items-center aspect-square cursor-pointer'
                         key={i}
                         onClick={()=>clickUserHandler(u)}>
@@ -306,7 +324,8 @@ export const Sidebar = () => {
             isOpen={isModalOpen} 
             onClose={()=>setIsModalOpen(false)} 
             submitType='create'
-            setGroups={setGroups}/>}
+            setGroups={setGroups}
+            onUpdate={loadRoomsHandler}/>}
         </div>
   )
 }

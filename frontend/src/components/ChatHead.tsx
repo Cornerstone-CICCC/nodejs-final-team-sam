@@ -4,8 +4,8 @@ import { use, useEffect, useRef, useState, type MouseEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { robohash } from "../lib/constants"
 import { getRoomById } from "../api/rooms.api"
-import type { ChatHeadProps } from "../types/props.types"
-import type { Room } from "../types/data.types"
+import type { ChatHeadProps, MemberResult } from "../types/props.types"
+import type { Room, User } from "../types/data.types"
 import { getRoomMember } from "../api/roomUser.api"
 import { useSocket } from "../contexts/SocketContext"
 import { useAuth } from "../contexts/AuthContext"
@@ -21,20 +21,31 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
     const {user} = useAuth()
-    const {removeRoom, leaveRoom, currentRoomId} = useSocket()
+    const {removeRoom, leaveRoom, currentRoomId, setCurrentRoomId} = useSocket()
+    const roomIdToShow = currentRoomId ?? roomId;
+
 
     //leave room handler
     const leaveRoomHandler=()=>{
-        leaveRoom(roomId)
+        leaveRoom()
         //send leave room via socket.io
         navigate('/chats')
     }
     //delete room handler
     const deleteRoomHandler=()=>{
-        if(!user) return
+        console.log("Delet??")
+        if(!user) {
+            console.log("no user exist")
+            return
+        }
+        console.log("DELETING", roomId, "FOR USER", user._id);
         //delete room from the list
         removeRoom(roomId, user._id)
+        console.log("setting room to null")
+        setCurrentRoomId("")
+        setRoom(null)
         navigate('/chats')
+
     }
 
     //outside of menu event handler
@@ -50,17 +61,69 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
 
     // Fetch room details when roomid exists
     const fetchRoom = async () => {
-        console.log(roomId)
-        if(!roomId) return
+        console.log(roomIdToShow)
+        if(!roomIdToShow|| !user) return
         try {
-            const roomDetail = await getRoomById(roomId) // your API call
+            const roomDetail = await getRoomById(roomIdToShow) // your API call
             console.log(roomDetail)
             setRoom(roomDetail) // ← set the room state here
+
+            if(roomDetail.type==="dm"){
+                const members = await getRoomMember(roomIdToShow) as MemberResult[]
+                const otherUser = members
+                .map((m)=> m.userId)
+                .filter((u) => u._id !== user._id) as User[]
+
+                console.log(otherUser[0].username)
+
+                const updateRoom:Room = {
+                    ...roomDetail,
+                    name:otherUser[0].username
+                }
+                setRoom(updateRoom)
+            }
         } catch (err) {
             console.error("Failed to fetch room details:", err)
         }
     }
 
+    useEffect(() => {
+        if (!roomIdToShow || !user){
+            setRoom(null);
+            return
+        }
+
+        let isCancelled = false;
+
+        const load = async () => {
+            const roomDetail = await getRoomById(roomIdToShow)
+            if (isCancelled) return;
+
+            if (roomDetail.type === "dm") {
+                const members = await getRoomMember(roomIdToShow) as MemberResult[]
+                if (isCancelled) return;
+
+                const otherUser = members
+                    .map(m => m.userId)
+                    .find(u => u._id !== user._id) as User
+
+                if(!otherUser) return
+
+                setRoom({
+                    ...roomDetail,
+                    name: otherUser.username,
+                });
+            } else {
+                setRoom(roomDetail);
+            }
+        };
+
+        load();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [roomIdToShow, user]);
 
     useEffect(()=>{
         window.addEventListener('mousedown', handleOutSideCLick)
@@ -70,12 +133,12 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
         }
     },[menuRef])
 
-    useEffect(()=>{
-        fetchRoom()
-    },[])
-    useEffect(()=>{
-        fetchRoom()
-    },[currentRoomId])
+    // useEffect(()=>{
+    //     fetchRoom()
+    // },[])
+    // useEffect(()=>{
+    //     fetchRoom()
+    // },[currentRoomId,roomId])
 
 
   return (

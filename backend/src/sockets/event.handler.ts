@@ -76,29 +76,37 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
     
     if(data.type === "dm"){
 
+      let roomId= data.roomId?.toString()
+
+      if(!roomId){
+
       const ids = [data.currUserId, data.otherUserId]
 
-      let roomId = await room_userService.checkExistedRoom(ids, data.type)
+      roomId = await room_userService.checkExistedRoom(ids, data.type)
 
       console.log(roomId)
 
-      // doesn't exist room -> create a new room
-      if(!roomId){
+        // doesn't exist room -> create a new room
+        if(!roomId){
 
-        // dm's roomname - user1_user2
-        const name = data.roomname 
-        const type = data.type
+          // dm's roomname - user1_user2
+          const name = data.roomname 
+          const type = data.type
 
-        const newRoom = await roomService.add({name, type })
-        roomId = newRoom._id.toString()
+          const newRoom = await roomService.add({name, type })
+          roomId = newRoom._id.toString()
 
-        console.log(`mewRoom: ${newRoom}`)
+          console.log(`mewRoom: ${newRoom}`)
+          console.log("current",data.currUserId)
+          console.log("other",data.otherUserId)
 
 
-        // add users to room_users table
-        await room_userService.add(roomId, data.currUserId)
-        await room_userService.add(roomId, data.otherUserId)
+          // add users to room_users table
+          await room_userService.add(roomId, data.currUserId)
+          await room_userService.add(roomId, data.otherUserId)
+        }
       }
+      
 
       // join the room
       socket.join(roomId.toString())
@@ -126,6 +134,7 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
       //join the room
       socket.join(roomId.toString())
+      socket.emit("joinedRoom", {roomId})
       console.log(`group roomId: ${roomId}`)
 
 

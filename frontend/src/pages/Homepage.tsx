@@ -42,7 +42,16 @@ const Homepage = () => {
 
         //API call - login
         const logInUser = await login({username, password})
+        if(!logInUser){
+            console.error("Sign up failed")
+            return
+        }
         console.log(logInUser)
+        //store user in AuthContext
+        setUser({
+            _id:logInUser._id,
+            username:logInUser.username
+        })
         
         //send login to socket.io
         socketLogin(logInUser._id)
