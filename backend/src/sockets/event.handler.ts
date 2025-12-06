@@ -78,7 +78,7 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
 
       const ids = [data.currUserId, data.otherUserId]
 
-     let roomId = await room_userService.checkExistedRoom(ids)
+      let roomId = await room_userService.checkExistedRoom(ids, data.type)
 
       console.log(roomId)
 
@@ -90,7 +90,7 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
         const type = data.type
 
         const newRoom = await roomService.add({name, type })
-        roomId = newRoom._id
+        roomId = newRoom._id.toString()
 
         console.log(`mewRoom: ${newRoom}`)
 
