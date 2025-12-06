@@ -15,6 +15,7 @@ const TextingPage = () => {
   const [showingMember, setShowingMember] = useState(false)
   const [members, setMembers] = useState<MemberResult[]>([])
   const [room, setRoom] = useState<Room|null>(null)
+  const [sidebarTrigger, setSidebarTrigger] = useState(false);
   //get room id in parameter
   const {roomid} = useParams()
   const navigate = useNavigate()
@@ -49,12 +50,13 @@ const TextingPage = () => {
     <div className='font-inter max-w-[1800px] mx-auto md:flex md:h-screen'>
       {/* Show when in desktop */}
         <div className='hidden md:flex sm:w-[28%] md:w-[35%] md:max-w-[450px] flex-shrink-0 sidebar-md-border'>
-            <Sidebar/>
+            <Sidebar trigger={sidebarTrigger}/>
         </div>
 
         {/* Desktop right side & whole screnn in mobile-chat history*/}
         <div className='flex bg-[rgba(222,234,255,0.42)] h-screen flex-1 flex-col relative'>
-          <ChatHead roomId={roomid} showMember={()=>setShowingMember(true)}/>
+          <ChatHead roomId={roomid} showMember={()=>setShowingMember(true)}
+           onTrigger={() => setSidebarTrigger(prev => !prev)} />
 
           {/* Show all members */}
           {showingMember&&

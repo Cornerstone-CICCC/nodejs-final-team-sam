@@ -13,7 +13,7 @@ import Modal from "./Modal"
 
 
 
-const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
+const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
     const navigate = useNavigate()
     const [isEditOpen, setIsEditOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement|null>(null)
@@ -44,7 +44,9 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
         console.log("setting room to null")
         setCurrentRoomId("")
         setRoom(null)
+
         navigate('/chats')
+        if(onTrigger) onTrigger()
 
     }
 
@@ -88,33 +90,45 @@ const ChatHead = ({roomId, showMember}:ChatHeadProps) => {
     }
 
     useEffect(() => {
-        if (!roomIdToShow || !user){
+        if (!roomIdToShow || !user) {
             setRoom(null);
-            return
+            return;
         }
 
         let isCancelled = false;
 
         const load = async () => {
-            const roomDetail = await getRoomById(roomIdToShow)
-            if (isCancelled) return;
+            try {
+                if (roomIdToShow) {
+                    // First, fetch basic room info
+                    const roomDetail = await getRoomById(roomIdToShow);
+                    if (isCancelled) return;
 
-            if (roomDetail.type === "dm") {
-                const members = await getRoomMember(roomIdToShow) as MemberResult[]
-                if (isCancelled) return;
+                    if (roomDetail.type === "dm") {
+                        // Fetch members in parallel with roomDetail
+                        const membersPromise = getRoomMember(roomIdToShow) as Promise<MemberResult[]>;
 
-                const otherUser = members
-                    .map(m => m.userId)
-                    .find(u => u._id !== user._id) as User
+                        // Wait for members
+                        const members = await membersPromise;
+                        if (isCancelled) return;
 
-                if(!otherUser) return
+                        const otherUser = members
+                            .map(m => m.userId)
+                            .find(u => u._id !== user._id) as User;
 
-                setRoom({
-                    ...roomDetail,
-                    name: otherUser.username,
-                });
-            } else {
-                setRoom(roomDetail);
+                        if (!otherUser) return;
+
+                        setRoom({
+                            ...roomDetail,
+                            name: otherUser.username,
+                        });
+                    } else {
+                        // Group room, just set room
+                        setRoom(roomDetail);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch room or members:", err);
             }
         };
 

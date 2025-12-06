@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Message, OldMessage, Room, RoomType, User } from "./data.types";
+import type { Socket } from "socket.io-client";
 
 export interface AuthContextType{
     user:User|null,
@@ -19,7 +20,8 @@ export interface SocketContextType {
   currentRoomList:Room[],
   oldMessages:OldMessage[],
   currentRoomId:string,
-  setCurrentRoomId:Dispatch<SetStateAction<string>>
+  setCurrentRoomId:Dispatch<SetStateAction<string>>,
+  socket:Socket
 }
 
 export interface JoinRoomProps{

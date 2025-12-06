@@ -104,6 +104,10 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
           // add users to room_users table
           await room_userService.add(roomId, data.currUserId)
           await room_userService.add(roomId, data.otherUserId)
+
+          //test
+          const otherUserSocket = connectedUsers.find(u => u.userId === data.otherUserId)?.socketId;
+          if (otherUserSocket) io.to(otherUserSocket).emit("newDM"); // no payload needed, just trigger reload
         }
       }
       

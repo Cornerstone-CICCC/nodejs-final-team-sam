@@ -120,7 +120,6 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
         socket.emit("leaveRoom", { roomId:currentRoomId });
         setCurrentRoomId("");
         setMessages([]);
-        setOnlineUsers([]);
   };
 
   const sendMessage = ({roomId, userId, content}:{roomId:string, userId:string, content:string}) => {
@@ -157,7 +156,8 @@ export const SocketProvider =({children}:{children:React.ReactNode})=>{
     currentRoomId,
     currentRoomList,
     oldMessages,
-    setCurrentRoomId
+    setCurrentRoomId,
+    socket
   }}>
         {children}
     </SocketContext.Provider>

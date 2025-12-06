@@ -63,7 +63,7 @@ const handleSocketEvents = (io, socket) => {
     // 2. roomId (already existed)
     // 3. type("group")
     socket.on('joinRoom', (data) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
+        var _a, _b, _c;
         if (data.type === "dm") {
             let roomId = (_a = data.roomId) === null || _a === void 0 ? void 0 : _a.toString();
             if (!roomId) {
@@ -83,6 +83,10 @@ const handleSocketEvents = (io, socket) => {
                     // add users to room_users table
                     yield room_user_service_1.default.add(roomId, data.currUserId);
                     yield room_user_service_1.default.add(roomId, data.otherUserId);
+                    //test
+                    const otherUserSocket = (_b = connectedUsers.find(u => u.userId === data.otherUserId)) === null || _b === void 0 ? void 0 : _b.socketId;
+                    if (otherUserSocket)
+                        io.to(otherUserSocket).emit("newDM"); // no payload needed, just trigger reload
                 }
             }
             // join the room
@@ -98,7 +102,7 @@ const handleSocketEvents = (io, socket) => {
         else {
             const roomId = data.roomId;
             const userId = data.currUserId;
-            const username = (_b = (yield user_service_1.default.getById(userId))) === null || _b === void 0 ? void 0 : _b.username;
+            const username = (_c = (yield user_service_1.default.getById(userId))) === null || _c === void 0 ? void 0 : _c.username;
             // add user to room_users table 
             // ->remove this cuz room_users table need to be add when the group is created
             //since we are not joining group chat right after creating group

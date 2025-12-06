@@ -1,3 +1,4 @@
+
 import type { Room, User } from "./data.types";
 
 export type ListType= {type:"group"; data:RoomUserResult[]}|{type:"dm", data:DmData[]}
@@ -22,9 +23,14 @@ export interface DmData {
   room: Room;
 }
 
+export interface SidebarProps{
+    trigger?:boolean
+}
+
 export interface ChatHeadProps{
     roomId:string,
     showMember:()=>void
+    onTrigger?:()=>void
 }
 
 export interface MemberResult{

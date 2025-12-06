@@ -5,21 +5,21 @@ import { robohash } from '../lib/constants'
 import Lists from '../components/Lists'
 import type { Room, User } from '../types/data.types'
 import Modal from '../components/Modal'
-import { faCircleUser } from '@fortawesome/free-regular-svg-icons'
 import { logout } from '../api/auth.api'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { checkRoomUser, createRoomUser, getGroupRooms, getPrivateRooms } from '../api/roomUser.api'
 import { useSocket } from '../contexts/SocketContext'
 import { findRoom, getAllRooms, getRoomById } from '../api/rooms.api'
-import type { DmData, RoomUserResult } from '../types/props.types'
+import type { DmData, RoomUserResult, SidebarProps } from '../types/props.types'
 import type { JoinDmProps, JoinGroupProps } from '../types/context.types'
 import { getUserByUsername, isSessionExist } from '../api/users.api'
+import type { Socket } from 'socket.io-client'
 
 
-export const Sidebar = () => {
+export const Sidebar = ({trigger}:SidebarProps) => {
     const {user, setUser} = useAuth()
-    const {socketLogout, currentUsers, joinRoom, currentRoomId,leaveRoom} =useSocket()
+    const {socketLogout, currentUsers, joinRoom, currentRoomId,leaveRoom, socket} =useSocket()
 
     const [activeUsers, setActiveUsers] = useState<User[]>([])
     const [friends, setFriends] = useState<DmData[]>([])
@@ -146,6 +146,12 @@ export const Sidebar = () => {
             navigate("/")
         }
     }
+
+    useEffect(()=>{
+        if(trigger){
+            loadRoomsHandler()
+        }
+    },[trigger])
     useEffect(()=>{
         //check if logged in user
         checkAuth()
@@ -167,7 +173,16 @@ export const Sidebar = () => {
         loadRoomsHandler()
     },[isPrivate,user])
 
+    useEffect(() => {
+    if (!socket) return;
 
+    const handler = () => loadRoomsHandler();
+    (socket as Socket).on("newDM", handler); // cast to Socket
+
+    return () => {
+        (socket as Socket).off("newDM", handler);
+    };
+    }, [socket, loadRoomsHandler]);
 
   return (
         <div className='w-full min-w-full max-h-screen'>
