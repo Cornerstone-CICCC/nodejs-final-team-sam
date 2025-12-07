@@ -108,7 +108,6 @@ const handleSocketEvents = (io, socket) => {
             if (!IsMember) {
                 yield room_user_service_1.default.add(roomId, userId);
             }
-            //await room_userService.add(roomId, userId)
             //join the room
             socket.join(roomId.toString());
             socket.emit("joinedRoom", { roomId });

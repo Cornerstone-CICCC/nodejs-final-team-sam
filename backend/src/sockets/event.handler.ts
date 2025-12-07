@@ -139,8 +139,6 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
         await room_userService.add(roomId, userId)
       }
 
-      //await room_userService.add(roomId, userId)
-
       //join the room
       socket.join(roomId.toString())
       socket.emit("joinedRoom", {roomId})
