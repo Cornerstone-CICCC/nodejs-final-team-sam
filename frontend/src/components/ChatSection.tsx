@@ -14,6 +14,7 @@ const ChatSection = ({roomId}:{roomId:string}) => {
     
     const [sendingMsg, setSendingMsg] = useState("") //use this to send input to backend
     const messagesWrapper = useRef<HTMLDivElement>(null)
+    const hasJoined = useRef(false)
 
     //need to have some function to distinct between my message and others
 
@@ -77,7 +78,14 @@ const ChatSection = ({roomId}:{roomId:string}) => {
     useEffect(() => {
         if (!roomId || !user) return;
 
-        joinTheRoom()
+        // if(!hasJoined.current){
+        //     joinTheRoom()
+        //     hasJoined.current = true        
+        // }
+
+        // return()=>{
+        //     hasJoined.current = false
+        // }
     }, [roomId, user]);
 
   return (

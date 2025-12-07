@@ -100,8 +100,14 @@ const handleSocketEvents = (io, socket) => {
             const userId = data.currUserId;
             const username = (_b = (yield user_service_1.default.getById(userId))) === null || _b === void 0 ? void 0 : _b.username;
             // add user to room_users table 
-            // ->remove this cuz room_users table need to be add when the group is created
-            //since we are not joining group chat right after creating group
+            //check if user is member or not
+            const members = yield room_user_service_1.default.getAll(roomId); //find all member in rooms
+            console.log(members);
+            const IsMember = members.some(m => m.userId._id.toString() === userId);
+            console.log(IsMember);
+            if (!IsMember) {
+                yield room_user_service_1.default.add(roomId, userId);
+            }
             //await room_userService.add(roomId, userId)
             //join the room
             socket.join(roomId.toString());
@@ -112,7 +118,10 @@ const handleSocketEvents = (io, socket) => {
             // send the old message to specific user
             socket.emit("oldMessages", oldMessages);
             console.log(oldMessages);
-            // send a message to all clients in the room 
+            // send a message to all clients in the room if joining client is not a member
+            if (IsMember)
+                return;
+            //check if joing user exsits in a room or not
             socket.broadcast.to(roomId.toString()).emit('systemChat', {
                 username: "System",
                 message: `${username} has joined`

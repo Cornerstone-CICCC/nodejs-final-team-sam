@@ -129,8 +129,16 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
       const username = (await userService.getById(userId))?.username
       
       // add user to room_users table 
-      // ->remove this cuz room_users table need to be add when the group is created
-      //since we are not joining group chat right after creating group
+      //check if user is member or not
+      const members = await room_userService.getAll(roomId) //find all member in rooms
+      console.log(members)
+      const IsMember = members.some(m=>m.userId._id.toString() === userId)
+      console.log(IsMember)
+
+      if(!IsMember){
+        await room_userService.add(roomId, userId)
+      }
+
       //await room_userService.add(roomId, userId)
 
       //join the room
@@ -145,7 +153,9 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
       socket.emit("oldMessages", oldMessages)
       console.log(oldMessages)
 
-      // send a message to all clients in the room 
+      // send a message to all clients in the room if joining client is not a member
+      if(IsMember) return
+      //check if joing user exsits in a room or not
       socket.broadcast.to(roomId.toString()).emit
       ('systemChat', {
         username: "System",
@@ -189,7 +199,6 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
         if(receivedId === userId) return
 
         const otherUserSocket = connectedUsers.find(usr => usr.userId === receivedId)?.socketId;
-
         if(otherUserSocket){
           io.to(otherUserSocket).emit("newDM", {
             roomId,

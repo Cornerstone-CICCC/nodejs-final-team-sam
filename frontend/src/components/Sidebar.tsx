@@ -80,11 +80,11 @@ export const Sidebar = ({trigger}:SidebarProps) => {
                 type:room.type
             }
 
-            const isRoomUserExist =await checkRoomUser(room._id, user._id)
-            //if room user nor exist -> create room user
-            if(!isRoomUserExist){
-               await createRoomUser(room._id, user._id)
-            }
+            // const isRoomUserExist =await checkRoomUser(room._id, user._id)
+            // //if room user nor exist -> create room user
+            // if(!isRoomUserExist){
+            //    await createRoomUser(room._id, user._id)
+            // }
 
             await joinRoom({data})
 
@@ -108,6 +108,10 @@ export const Sidebar = ({trigger}:SidebarProps) => {
                 navigate(`/chats/${currentRoomId}`)    
             }
         }
+        if(isSearchResultOpen){
+            setIsSearchResultOpen(false) //close results        
+        }
+        loadRoomsHandler()
 
     }
 
@@ -130,7 +134,8 @@ export const Sidebar = ({trigger}:SidebarProps) => {
     }
 
     const loadRoomsHandler = async()=>{
-        console.log(user)
+        console.log("loading room")
+
         if(user?._id){
             //fetch type="dm" -> return type Room
             if(isPrivate){
@@ -138,10 +143,11 @@ export const Sidebar = ({trigger}:SidebarProps) => {
                  const rooms = await getPrivateRooms(user._id)
                 setFriends(rooms)
             }else{
+                console.log("rendering")
                 setGroups([])
                 const rooms = await getGroupRooms(user._id)
-                console.log(rooms)
                 setGroups(rooms)
+                console.log(rooms)
             }
         }
     }
@@ -187,6 +193,7 @@ export const Sidebar = ({trigger}:SidebarProps) => {
         loadRoomsHandler()
     },[isPrivate,user])
 
+    //listen to new dm
     useEffect(() => {
     if (!socket) return;
 
@@ -216,6 +223,23 @@ export const Sidebar = ({trigger}:SidebarProps) => {
             (socket as Socket).off("newDM", handler);
         };
     }, [socket, loadRoomsHandler, currentRoomId]);
+
+    //listen to join event
+    useEffect(() => {
+    if (!socket) return;
+
+        const handler = () =>{ 
+            console.log("joining event received")
+            loadRoomsHandler()
+        };
+
+        (socket as Socket).on("joinedRoom",handler
+        ); 
+
+        return () => {
+            (socket as Socket).off("joinedRoom", handler);
+        };
+    }, [socket]);
 
   return (
         <div className='w-full min-w-full max-h-screen'>

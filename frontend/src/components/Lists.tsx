@@ -62,7 +62,7 @@ const Lists = (props:ListType) => {
 
 
   return (
-    <div className='px-10 flex flex-col overflow-y-scroll max-h-[45vh] no-scrollbar'>
+    <div className='px-10 flex flex-col overflow-y-scroll max-h-[65vh] no-scrollbar'>
   {data.length > 0 ? (
     data.map((item) => {
       if (type === "dm") {
