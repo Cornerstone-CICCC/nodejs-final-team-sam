@@ -73,11 +73,11 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
             if(roomDetail.type==="dm"){
                 const members = await getRoomMember(roomIdToShow) as MemberResult[]
 
-                if (!members || members.length < 2) {
-                    console.log("Members not ready yet, retrying...")
-                    setTimeout(fetchRoom, 300) // retry after socket join
-                    return
-                }
+                // if (!members || members.length < 2) {
+                //     console.log("Members not ready yet, retrying...")
+                //     setTimeout(fetchRoom, 300) // retry after socket join
+                //     return
+                // }
                 const otherUser = members
                 .map((m)=> m.userId)
                 .filter((u) => u._id !== user._id) as User[]
