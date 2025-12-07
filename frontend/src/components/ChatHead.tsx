@@ -28,6 +28,7 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
     //leave room handler
     const leaveRoomHandler=()=>{
         leaveRoom()
+        if(onTrigger) onTrigger
         //send leave room via socket.io
         navigate('/chats')
     }

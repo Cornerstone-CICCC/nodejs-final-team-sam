@@ -172,6 +172,7 @@ export const Sidebar = ({trigger}:SidebarProps) => {
             loadRoomsHandler()
         }
     },[trigger])
+    
     useEffect(()=>{
         //check if logged in user
         checkAuth()
