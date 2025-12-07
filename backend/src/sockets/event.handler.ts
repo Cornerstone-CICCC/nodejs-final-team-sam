@@ -219,8 +219,25 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
   })
 
   //distconnect
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async() => {
     console.log(`User disconnected: ${socket.id}`)
+
+
+    // remove online users
+    const removeIndex = connectedUsers.findIndex(u => u.socketId === socket.id)
+    if(removeIndex !== -1){
+      
+      connectedUsers.splice(removeIndex, 1)
+
+      const users = await Promise.all(
+        connectedUsers.map(u => userService.getById(u.userId))
+      )
+
+      io.emit("currentUsers", users)
+
+      console.log("updated users list")
+      console.log(users)
+    }
   })
 
 }
