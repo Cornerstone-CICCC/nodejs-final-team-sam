@@ -1,4 +1,5 @@
 import { BASE_URL } from "../lib/constants"
+import type { Room } from "../types/data.types"
 
 
 const endpoint= `${BASE_URL}/rooms`
@@ -55,10 +56,11 @@ export const findRoom = async(keyword:string)=>{
         })
 
         const data = await res.json()
-
-        return data
+        const groups = (data as Room[]).filter(data=> data.type === "group")
+        return groups
     }catch(err){
         console.error(err)
+        return []
     }
 }
 

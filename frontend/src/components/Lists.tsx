@@ -2,35 +2,32 @@
 import type { DmData, ListType, MemberResult, RoomUserResult } from '../types/props.types'
 import { robohash } from '../lib/constants'
 import { useNavigate } from 'react-router-dom'
-import { use, useEffect, useState } from 'react'
 import { useSocket } from '../contexts/SocketContext'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserByUsername } from '../api/users.api'
 import type { User } from '../types/data.types'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCommentDots } from '@fortawesome/free-regular-svg-icons'
 
 const Lists = (props:ListType) => {
     const navigate = useNavigate()
     const data = props.data
     const type = props.type
+    const openRoom = props.clickRoom
 
-    console.log(data)
 
     const {joinRoom,leaveRoom, currentRoomId} = useSocket()
     const {user} = useAuth()
 
-
     const joinTheRoom = async(roomid:string, roomName:string)=>{
-
         if(!user) return
         leaveRoom()
         if(type ==="dm"){
             //find other user by roomname(username)
            const otherUser = await getUserByUsername(roomName) as User
-
-           if(!otherUser) return
-
            console.log("otherUser",otherUser)
-           console.log("user:",user)
+           if(!otherUser) return
+           openRoom(roomid, otherUser._id)
 
            joinRoom({
             data:{
@@ -43,7 +40,8 @@ const Lists = (props:ListType) => {
            })
 
         }else{
-            console.log(data)
+
+          openRoom(roomid)
             joinRoom({
                 data:{
                     currUserId:user._id,
@@ -53,12 +51,14 @@ const Lists = (props:ListType) => {
             })
            
         }
-        if(currentRoomId){
-            navigate(`/chats/${currentRoomId}`)
-        }else{
+        // if(currentRoomId){
+        //     navigate(`/chats/${currentRoomId}`)
+        // }else{
               navigate(`/chats/${roomid}`)      
-        }
+        // }
     }
+
+
 
 
   return (
@@ -68,27 +68,38 @@ const Lists = (props:ListType) => {
       if (type === "dm") {
         const dmItem = item as DmData;
         if (!dmItem.otherUser) return null;
-        console.log(dmItem) 
+
+        const isUnread = props.unreadDMs[dmItem.otherUser._id]
+
         return (
           <div
-            className='flex items-center gap-8 cursor-pointer hover:bg-[#F5F5F5] p-4'
+            className='flex items-center justify-between cursor-pointer hover:bg-[#F5F5F5] p-4'
             key={dmItem.otherUser._id}
             onClick={() => joinTheRoom(dmItem.room._id, dmItem.room.name)}
           >
-            <div className='bg-[rgba(218,218,220,0.42)] rounded-[50%] p-1 flex items-center'>
-              <img
-                src={`${robohash}/${dmItem.otherUser.username}`}
-                width={50}
-                className='rounded-[50%]'
-              />
+            <div className='flex items-center gap-8'>
+              <div className='bg-[rgba(218,218,220,0.42)] rounded-[50%] p-1 flex items-center'>
+                <img
+                  src={`${robohash}/${dmItem.otherUser.username}`}
+                  width={50}
+                  className='rounded-[50%]'
+                />
+              </div>
+              <div className='font-bold'>
+                {dmItem.otherUser.username}
+              </div>
             </div>
-            <div className='font-bold'>
-              {dmItem.otherUser.username}
-            </div>
+              {isUnread&&
+              <div>
+                <FontAwesomeIcon icon={faCommentDots}
+                className='text-blue-400 text-xl' />
+              </div>
+              }
           </div>
         );
       } else {
         const groupItem = item as RoomUserResult;
+        const isUnread = props.unreadGroups[groupItem.roomId._id]
         return (
           <div
             className='flex items-center gap-8 cursor-pointer hover:bg-[#F5F5F5] p-4'
@@ -105,6 +116,13 @@ const Lists = (props:ListType) => {
             <div className='font-bold'>
               {groupItem.roomId.name}
             </div>
+              {isUnread&&
+              <div>
+                <FontAwesomeIcon icon={faCommentDots}
+                className='text-blue-400' />
+              </div>
+              }
+
           </div>
         );
       }

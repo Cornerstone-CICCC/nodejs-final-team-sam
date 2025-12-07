@@ -22,8 +22,10 @@ export interface Message{
 export interface OldMessage{
     _id:string,
     createdAt:string,
+    updatedAt:string,
     content:string,
     userId:User
+    roomId:string
 }
 
 export interface Received{

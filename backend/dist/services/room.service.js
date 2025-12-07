@@ -37,7 +37,7 @@ const getByKeyword = (keyword) => __awaiter(void 0, void 0, void 0, function* ()
 const getTypeRooms = (type) => __awaiter(void 0, void 0, void 0, function* () {
     return yield room_model_1.Room.find({
         type
-    });
+    }).sort({ updatedAt: 1 });
 });
 // Add room
 const add = (newRoom) => __awaiter(void 0, void 0, void 0, function* () {

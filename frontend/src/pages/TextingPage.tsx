@@ -82,7 +82,7 @@ const TextingPage = () => {
             </div>)
             }
           </div>}
-          <ChatSection roomId={roomid}/>
+          <ChatSection roomId={roomid} />
         </div>
     </div>
   )

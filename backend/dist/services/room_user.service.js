@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const room_user_model_1 = require("../models/room_user.model");
 const room_model_1 = require("../models/room.model");
 const mongoose_1 = __importDefault(require("mongoose"));
+const message_model_1 = require("../models/message.model");
 //Get all users by roomId
 const getAll = (roomId) => __awaiter(void 0, void 0, void 0, function* () {
     const users = yield room_user_model_1.RoomUser.find({ roomId }).populate("userId", "username").lean();
@@ -25,13 +26,27 @@ const getAllRooms = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const rooms = yield room_user_model_1.RoomUser.find({ userId }).populate("roomId", "name").lean();
     return rooms;
 });
-// Get rooms by type and userId
+// Get rooms by type and userId 
 const getRoomsByUserAndType = (userId, type) => __awaiter(void 0, void 0, void 0, function* () {
     const rooms = yield room_user_model_1.RoomUser.find({ userId }).populate({
         path: "roomId",
-        match: { type }
+        match: { type },
     }).lean();
-    return rooms.filter(r => r.roomId !== null);
+    //sort by latest message
+    const validRooms = rooms.filter(r => r.roomId !== null);
+    const roomWithLatest = yield Promise.all(validRooms.map((r) => __awaiter(void 0, void 0, void 0, function* () {
+        const latestMsg = yield message_model_1.Message.findOne({ roomId: r.roomId._id })
+            .sort({ createdAt: -1 })
+            .lean();
+        return Object.assign(Object.assign({}, r), { latestMsgDate: (latestMsg === null || latestMsg === void 0 ? void 0 : latestMsg.createdAt) || null });
+    })));
+    //sort by latest message date
+    roomWithLatest.sort((a, b) => {
+        const dateA = a.latestMsgDate ? new Date(a.latestMsgDate).getTime() : 0;
+        const dateB = b.latestMsgDate ? new Date(b.latestMsgDate).getTime() : 0;
+        return dateB - dateA;
+    });
+    return roomWithLatest;
 });
 // Get roomId by userId
 const checkExistedRoom = (ids, type) => __awaiter(void 0, void 0, void 0, function* () {
@@ -88,11 +103,21 @@ const getDmRoomsWithOtherUser = (userId) => __awaiter(void 0, void 0, void 0, fu
         })
             .populate({ path: "userId", select: "username" })
             .lean();
+        //get latest message date
+        const latestMsg = yield message_model_1.Message.findOne({ roomId: r.roomId._id })
+            .sort({ createdAt: -1 })
+            .lean();
         return {
             room: r.roomId,
-            otherUser: otherUser === null || otherUser === void 0 ? void 0 : otherUser.userId // { _id, username }
+            otherUser: otherUser === null || otherUser === void 0 ? void 0 : otherUser.userId, // { _id, username }
+            latestMsgDate: (latestMsg === null || latestMsg === void 0 ? void 0 : latestMsg.createdAt) || null
         };
     })));
+    results.sort((a, b) => {
+        const dateA = a.latestMsgDate ? new Date(a.latestMsgDate).getTime() : 0;
+        const dateB = b.latestMsgDate ? new Date(b.latestMsgDate).getTime() : 0;
+        return dateB - dateA;
+    });
     return results;
 });
 exports.default = {

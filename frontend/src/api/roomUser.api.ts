@@ -9,7 +9,6 @@ export const getRoomMember = async(roomId:string)=>{
             credentials:'include'
         })
         const data = await res.json()
-        console.log(data)
 
         return data
     }catch(err){

@@ -1,8 +1,27 @@
 
 import type { Room, User } from "./data.types";
 
-export type ListType= {type:"group"; data:RoomUserResult[]}|{type:"dm", data:DmData[]}
+export type ListType= 
+    |
+    {
+        type:"group"; 
+        data:RoomUserResult[]; 
+        unreadGroups:{[roomId:string]:boolean};
+        clickRoom: (roomId:string) => void;
+    }
+    | {
+        type:"dm"; 
+        data:DmData[]; 
+        unreadDMs:{[userId:string]:boolean};
+        clickRoom: (roomId: string, otherUserId?:string) => void;
+    }
 
+export interface NewDmType {
+    roomId: string,
+    senderId:string,
+    contentPreview:string,
+    type:"dm"|"group"
+}
 export interface RoomUserResult{
     userId:string,
     _id:string,

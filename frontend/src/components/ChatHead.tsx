@@ -22,7 +22,7 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
 
     const {user} = useAuth()
     const {removeRoom, leaveRoom, currentRoomId, setCurrentRoomId} = useSocket()
-    const roomIdToShow = currentRoomId ?? roomId;
+    const roomIdToShow = roomId;
 
 
     //leave room handler
@@ -72,11 +72,18 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
 
             if(roomDetail.type==="dm"){
                 const members = await getRoomMember(roomIdToShow) as MemberResult[]
+
+                if (!members || members.length < 2) {
+                    console.log("Members not ready yet, retrying...")
+                    setTimeout(fetchRoom, 300) // retry after socket join
+                    return
+                }
                 const otherUser = members
                 .map((m)=> m.userId)
                 .filter((u) => u._id !== user._id) as User[]
 
                 console.log(otherUser[0].username)
+
 
                 const updateRoom:Room = {
                     ...roomDetail,
@@ -137,7 +144,7 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
         return () => {
             isCancelled = true;
         };
-    }, [roomIdToShow, user]);
+    }, [roomIdToShow, user, currentRoomId] );
 
     useEffect(()=>{
         window.addEventListener('mousedown', handleOutSideCLick)
@@ -146,13 +153,6 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
             window.removeEventListener('mousedown', handleOutSideCLick)
         }
     },[menuRef])
-
-    // useEffect(()=>{
-    //     fetchRoom()
-    // },[])
-    // useEffect(()=>{
-    //     fetchRoom()
-    // },[currentRoomId,roomId])
 
 
   return (
@@ -164,12 +164,12 @@ const ChatHead = ({roomId, showMember, onTrigger}:ChatHeadProps) => {
                     className="text-black cursor-pointer sm:text-xl"
                     onClick={()=>leaveRoomHandler()}/>
                 </div>
-                <div className="flex items-center gap-3 font-bold sm:text-xl">
+                {room?.name &&<div className="flex items-center gap-3 font-bold sm:text-xl">
                     <img 
                     src={`${robohash}/${room?.name}`}
                     className="w-[35px] sm:w-[40px] rounded-[50%] bg-[rgba(218,218,220,0.42)]"/>
                     <div>{room&&room.name}</div>
-                </div>
+                </div>}
             </div>
 
             <div className="flex gap-4 smtext-xl">

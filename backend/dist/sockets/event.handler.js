@@ -63,7 +63,7 @@ const handleSocketEvents = (io, socket) => {
     // 2. roomId (already existed)
     // 3. type("group")
     socket.on('joinRoom', (data) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c;
+        var _a, _b;
         if (data.type === "dm") {
             let roomId = (_a = data.roomId) === null || _a === void 0 ? void 0 : _a.toString();
             if (!roomId) {
@@ -83,10 +83,6 @@ const handleSocketEvents = (io, socket) => {
                     // add users to room_users table
                     yield room_user_service_1.default.add(roomId, data.currUserId);
                     yield room_user_service_1.default.add(roomId, data.otherUserId);
-                    //test
-                    const otherUserSocket = (_b = connectedUsers.find(u => u.userId === data.otherUserId)) === null || _b === void 0 ? void 0 : _b.socketId;
-                    if (otherUserSocket)
-                        io.to(otherUserSocket).emit("newDM"); // no payload needed, just trigger reload
                 }
             }
             // join the room
@@ -102,7 +98,7 @@ const handleSocketEvents = (io, socket) => {
         else {
             const roomId = data.roomId;
             const userId = data.currUserId;
-            const username = (_c = (yield user_service_1.default.getById(userId))) === null || _c === void 0 ? void 0 : _c.username;
+            const username = (_b = (yield user_service_1.default.getById(userId))) === null || _b === void 0 ? void 0 : _b.username;
             // add user to room_users table 
             // ->remove this cuz room_users table need to be add when the group is created
             //since we are not joining group chat right after creating group
@@ -133,9 +129,33 @@ const handleSocketEvents = (io, socket) => {
         try {
             // save message to messages table
             const message = yield message_service_1.default.add({ roomId, userId, content });
+            //Populate with userId
+            const populated = yield message.populate("userId", "username");
             // broadcast the message to users in the roon
-            io.to(roomId.toString()).emit("newMessage", message);
-            console.log(`newMessage: ${message}`);
+            io.to(roomId.toString()).emit("newMessage", populated);
+            console.log(`newMessage: ${populated}`);
+            //emitting newDm
+            const usersInRoom = yield room_user_service_1.default.getAll(roomId);
+            const room = yield room_service_1.default.getById(roomId); //find a room to get type
+            if (!room) {
+                console.log(`Room with ID:${roomId} not found`);
+                return;
+            }
+            usersInRoom.forEach((u) => {
+                var _a;
+                const receivedId = u.userId._id.toString();
+                if (receivedId === userId)
+                    return;
+                const otherUserSocket = (_a = connectedUsers.find(usr => usr.userId === receivedId)) === null || _a === void 0 ? void 0 : _a.socketId;
+                if (otherUserSocket) {
+                    io.to(otherUserSocket).emit("newDM", {
+                        roomId,
+                        senderId: userId,
+                        contentPreview: content.slice(0, 30),
+                        type: room.type
+                    });
+                }
+            });
         }
         catch (err) {
             console.error('Error saving message:', err);
@@ -169,8 +189,17 @@ const handleSocketEvents = (io, socket) => {
         socket.emit("updatedRoomList", roomList);
     }));
     //distconnect
-    socket.on('disconnect', () => {
+    socket.on('disconnect', () => __awaiter(void 0, void 0, void 0, function* () {
         console.log(`User disconnected: ${socket.id}`);
-    });
+        // remove online users
+        const removeIndex = connectedUsers.findIndex(u => u.socketId === socket.id);
+        if (removeIndex !== -1) {
+            connectedUsers.splice(removeIndex, 1);
+            const users = yield Promise.all(connectedUsers.map(u => user_service_1.default.getById(u.userId)));
+            io.emit("currentUsers", users);
+            console.log("updated users list");
+            console.log(users);
+        }
+    }));
 };
 exports.handleSocketEvents = handleSocketEvents;

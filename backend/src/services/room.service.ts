@@ -31,7 +31,7 @@ const getByKeyword = async(keyword: string) => {
 const getTypeRooms = async(type: string) => {
   return await Room.find({
     type
-  })
+  }).sort({updatedAt: 1})
 }
 
 // Add room

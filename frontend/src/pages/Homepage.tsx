@@ -101,7 +101,7 @@ const Homepage = () => {
         <div className='hidden md:flex items-center justify-center md:w-[60%] bg-[#5465FF]'>
             <div className='p-9'>
                 <div className='text-white logo-font text-3xl text-center pb-12'>
-                    Wavechat
+                    WaveChat
                 </div>
                 <div className='bg-[#F0F5FF] aspect-square flex items-center justify-center rounded-[50%] w-[280px] mx-auto'>
                     <img
@@ -112,7 +112,7 @@ const Homepage = () => {
                     Chat app for everyone
                 </div>
                 <div className='text-white text-center w-[80%] mx-auto'>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun.
+                    Connect with friends, make new ones, and feel at ease in every conversation you have
                 </div>
             </div>
         </div>
@@ -120,7 +120,7 @@ const Homepage = () => {
         <div className='bg-white p-8 rounded-2xl h-fit w-[80%] md:w-full max-w-[480px] md:max-w-full md:h-screen flex items-center'>
             <div className='flex flex-col gap-6 max-w-[400px] w-full mx-auto'>
                 <div className='logo-font pt-2 text-xl sm:text-2xl text-center md:hidden'>
-                    Wavechat
+                    WaveChat
                 </div>
                 <div className='pt-4 text-center font-bold text-[18px] sm:text-[24px]'>
                     Join & Connect with your friends

@@ -12,7 +12,7 @@ const ChatsPage = () => {
         {/* Desktop right side*/}
         <div className=' hidden md:flex bg-[rgba(222,234,255,0.42)] h-screen flex-1 justify-center items-center'>
             <div className='text-gray-400 text-3xl font-bold' >
-                Welcome to Chatwave!
+                Welcome to WaveChat!
             </div>
         </div>
     </div>

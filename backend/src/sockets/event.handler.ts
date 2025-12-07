@@ -105,9 +105,6 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
           await room_userService.add(roomId, data.currUserId)
           await room_userService.add(roomId, data.otherUserId)
 
-          //test
-          const otherUserSocket = connectedUsers.find(u => u.userId === data.otherUserId)?.socketId;
-          if (otherUserSocket) io.to(otherUserSocket).emit("newDM"); // no payload needed, just trigger reload
         }
       }
       
@@ -170,9 +167,39 @@ export const handleSocketEvents = (io:Server, socket: Socket) => {
       // save message to messages table
       const message = await messageService.add({roomId, userId, content})
 
+      //Populate with userId
+      const populated = await message.populate("userId", "username")
+
       // broadcast the message to users in the roon
-      io.to(roomId.toString()).emit("newMessage", message)
-      console.log(`newMessage: ${message}`)
+      io.to(roomId.toString()).emit("newMessage", populated)
+      console.log(`newMessage: ${populated}`)
+      
+      //emitting newDm
+      const usersInRoom = await room_userService.getAll(roomId)
+
+      const room = await roomService.getById(roomId) //find a room to get type
+      if(!room){
+        console.log(`Room with ID:${roomId} not found`)
+        return
+      }
+
+      usersInRoom.forEach((u)=>{
+        const receivedId = u.userId._id.toString()
+
+        if(receivedId === userId) return
+
+        const otherUserSocket = connectedUsers.find(usr => usr.userId === receivedId)?.socketId;
+
+        if(otherUserSocket){
+          io.to(otherUserSocket).emit("newDM", {
+            roomId,
+            senderId:userId,
+            contentPreview:content.slice(0, 30),
+            type: room.type
+          });         
+        }
+      })
+
     }catch(err){
       console.error('Error saving message:', err)
     }

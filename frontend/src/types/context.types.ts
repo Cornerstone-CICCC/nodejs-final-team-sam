@@ -26,7 +26,7 @@ export interface SocketContextType {
 
 export interface JoinRoomProps{
   // type:RoomType,
-  data: JoinDmProps|JoinGroupProps
+  data: JoinDmProps|JoinGroupProps |MimJoinRoomProps
 }
 
 export interface JoinDmProps{
@@ -38,6 +38,12 @@ export interface JoinDmProps{
 }
 
 export interface JoinGroupProps{
+  currUserId:string,
+  roomId:string,
+  type:RoomType
+}
+
+export interface MimJoinRoomProps{
   currUserId:string,
   roomId:string,
   type:RoomType

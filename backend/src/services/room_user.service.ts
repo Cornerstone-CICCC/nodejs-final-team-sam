@@ -1,6 +1,7 @@
 import { RoomUser, IRoomUser } from "../models/room_user.model";
 import { Room } from "../models/room.model";
 import mongoose from "mongoose";
+import { Message } from "../models/message.model";
 
 //Get all users by roomId
 const getAll = async(roomId:string) => {
@@ -14,14 +15,37 @@ const getAllRooms = async(userId: string) => {
   return rooms
 }
 
-// Get rooms by type and userId
+// Get rooms by type and userId 
 const getRoomsByUserAndType = async(userId: string, type: string) => {
   const rooms = await RoomUser.find({userId}).populate({
     path: "roomId",
-    match: {type}
+    match: {type},
   }).lean()
+
+  //sort by latest message
+  const validRooms = rooms.filter(r=>r.roomId !== null)
+
+  const roomWithLatest = await Promise.all(
+    validRooms.map(async (r)=>{
+      const latestMsg = await Message.findOne({roomId:r.roomId._id})
+      .sort({createdAt:-1})
+      .lean()
+
+      return{
+        ...r,
+        latestMsgDate: latestMsg?.createdAt || null
+      }
+    })
+  )
+
+  //sort by latest message date
+  roomWithLatest.sort((a,b)=>{
+    const dateA = a.latestMsgDate ? new Date(a.latestMsgDate).getTime() : 0;
+    const dateB = b.latestMsgDate ? new Date(b.latestMsgDate).getTime() : 0;
+    return dateB - dateA;
+  })
   
-  return rooms.filter(r=> r.roomId !== null)
+  return roomWithLatest
 }
 
 // Get roomId by userId
@@ -91,12 +115,24 @@ const getDmRoomsWithOtherUser = async (userId: string) => {
       .populate({ path: "userId", select: "username" })
       .lean();
 
+      //get latest message date
+      const latestMsg = await Message.findOne({roomId:r.roomId._id})
+          .sort({createdAt:-1})
+          .lean()
+
       return {
         room: r.roomId,
-        otherUser: otherUser?.userId // { _id, username }
+        otherUser: otherUser?.userId, // { _id, username }
+        latestMsgDate:latestMsg?.createdAt || null
       };
     })
   );
+
+  results.sort((a,b)=>{
+    const dateA = a.latestMsgDate ? new Date(a.latestMsgDate).getTime() : 0;
+    const dateB = b.latestMsgDate ? new Date(b.latestMsgDate).getTime() : 0;
+    return dateB - dateA;
+  })
 
   return results;
 };

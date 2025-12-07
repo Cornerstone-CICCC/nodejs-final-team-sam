@@ -6,20 +6,21 @@ import Lists from '../components/Lists'
 import type { Room, User } from '../types/data.types'
 import Modal from '../components/Modal'
 import { logout } from '../api/auth.api'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { checkRoomUser, createRoomUser, getGroupRooms, getPrivateRooms } from '../api/roomUser.api'
 import { useSocket } from '../contexts/SocketContext'
 import { findRoom, getAllRooms, getRoomById } from '../api/rooms.api'
-import type { DmData, RoomUserResult, SidebarProps } from '../types/props.types'
+import type { DmData, NewDmType, RoomUserResult, SidebarProps } from '../types/props.types'
 import type { JoinDmProps, JoinGroupProps } from '../types/context.types'
 import { getUserByUsername, isSessionExist } from '../api/users.api'
 import type { Socket } from 'socket.io-client'
 
 
 export const Sidebar = ({trigger}:SidebarProps) => {
+    const {roomId} = useParams()
     const {user, setUser} = useAuth()
-    const {socketLogout, currentUsers, joinRoom, currentRoomId,leaveRoom, socket} =useSocket()
+    const {socketLogout, currentUsers, joinRoom, currentRoomId,setCurrentRoomId,leaveRoom, socket} =useSocket()
 
     const [activeUsers, setActiveUsers] = useState<User[]>([])
     const [friends, setFriends] = useState<DmData[]>([])
@@ -31,9 +32,11 @@ export const Sidebar = ({trigger}:SidebarProps) => {
     const [keyword, setKeyword] = useState("")
     const navigate = useNavigate()
     const [isPrivate, setIsPrivate] = useState(()=>{
-        const storedValue = localStorage.getItem('isPrivate')
+        const storedValue = sessionStorage.getItem('isPrivate')
         return storedValue ? JSON.parse(storedValue): true
     })
+    const [unreadDMs, setUnreadDMs] = useState<{[userId:string]:boolean}>({})
+    const [unreadGroups, setUnreadGroups] = useState<{[roomId:string]:boolean}>({})
 
     const clickUserHandler=async(clickedUser:User)=>{
         console.log(clickedUser)
@@ -41,6 +44,11 @@ export const Sidebar = ({trigger}:SidebarProps) => {
 
         if(!user||!clickedUser){
             console.log("user or other user not found")
+            return
+        }
+
+        if(user._id === clickedUser._id){
+            console.log("you are clicking yourself")
             return
         }
      
@@ -62,7 +70,7 @@ export const Sidebar = ({trigger}:SidebarProps) => {
 
     const joinRoomHandler =async(room:Room)=>{
         if(!user) return
-        console.log(room)
+
         leaveRoom()
 
         if(room.type==="group"){
@@ -125,7 +133,6 @@ export const Sidebar = ({trigger}:SidebarProps) => {
         console.log(user)
         if(user?._id){
             //fetch type="dm" -> return type Room
-
             if(isPrivate){
                 setFriends([])
                  const rooms = await getPrivateRooms(user._id)
@@ -147,6 +154,13 @@ export const Sidebar = ({trigger}:SidebarProps) => {
         }
     }
 
+    const openRoom = (roomId:string, otherUserId?:string)=>{
+        if(otherUserId) setUnreadDMs(prev => ({ ...prev, [otherUserId]: false }))
+        else setUnreadGroups(prev => ({ ...prev, [roomId]: false }))
+
+        setCurrentRoomId(roomId)
+    }
+
     useEffect(()=>{
         if(trigger){
             loadRoomsHandler()
@@ -166,23 +180,42 @@ export const Sidebar = ({trigger}:SidebarProps) => {
         setActiveUsers(currentUsers)
     },[currentUsers])
 
-    //store the private/group input in local storage
+    //store the private/group input in session storage
     useEffect(()=>{
         if(!user) return
-        localStorage.setItem('isPrivate',JSON.stringify(isPrivate))
+        sessionStorage.setItem('isPrivate',JSON.stringify(isPrivate))
         loadRoomsHandler()
     },[isPrivate,user])
 
     useEffect(() => {
     if (!socket) return;
 
-    const handler = () => loadRoomsHandler();
-    (socket as Socket).on("newDM", handler); // cast to Socket
+        const handler = (data:NewDmType) =>{ 
+            console.log("receiving data",data)
+            loadRoomsHandler()
 
-    return () => {
-        (socket as Socket).off("newDM", handler);
-    };
-    }, [socket, loadRoomsHandler]);
+            if(currentRoomId===data.roomId ||(roomId&&roomId===data.roomId)) return
+
+            if(data.type=="dm"){
+                setUnreadDMs(prev =>({
+                    ...prev,
+                    [data.senderId]:true
+                }))
+            }else if(data.type==="group"){
+                setUnreadGroups(prev=>({
+                    ...prev,
+                    [data.roomId]:true
+                }))
+            }
+        };
+
+        (socket as Socket).on("newDM",handler
+        ); 
+
+        return () => {
+            (socket as Socket).off("newDM", handler);
+        };
+    }, [socket, loadRoomsHandler, currentRoomId]);
 
   return (
         <div className='w-full min-w-full max-h-screen'>
@@ -204,7 +237,7 @@ export const Sidebar = ({trigger}:SidebarProps) => {
 
                 <div className='flex px-3 py-2 items-center gap-5 bg-[#F5F5F5] rounded-2xl w-fit text-[16px] lg:text-md'>
                     <FontAwesomeIcon icon={faMagnifyingGlass}/>
-                    <input type="text" placeholder='Find users..'
+                    <input type="text" placeholder='Find Group Rooms..'
                     className='w-[100%] max-w-[300px]'
                     value={keyword}
                     onChange={(e)=>setKeyword(e.target.value)}
@@ -307,7 +340,7 @@ export const Sidebar = ({trigger}:SidebarProps) => {
                 <div className='py-5 px-12'>
                     <div className='font-bold text-[26px]'>Private Chats</div>
                 </div>
-                <Lists  data={friends} type="dm"/>
+                <Lists data={friends} type="dm" unreadDMs={unreadDMs} clickRoom={openRoom}/>
 
             </div>}
 
@@ -332,7 +365,7 @@ export const Sidebar = ({trigger}:SidebarProps) => {
                     </div>
                 </div>
 
-                <Lists data={groups} type="group"/>
+                <Lists data={groups} type="group" unreadGroups={unreadGroups} clickRoom={openRoom}/>
             </div>}
             {isModalOpen&&
             <Modal 
