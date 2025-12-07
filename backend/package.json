@@ -5,7 +5,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"npx tsc -w\" \"nodemon dist/server.js\""
-
   },
   "keywords": [],
   "author": "",
@@ -31,6 +30,7 @@
     "express": "^5.2.0",
     "mongoose": "^9.0.0",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "uuid": "^13.0.0"
   }
 }
